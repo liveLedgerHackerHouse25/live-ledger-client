@@ -1,0 +1,103 @@
+/* Palette (keep consistent with home): */
+:root{
+  --bg: #fff;
+  --card-bg: #ffffff;
+  --muted: #6b7280;
+  --primary: #13C4A9; /* bright blue */
+  --primary-contrast: #ffffff;
+  --border: #e6eefc;
+  --shadow: rgba(11,99,255,0.08);
+}
+
+/* Container / card */
+.container{
+  max-width: 420px;
+  margin: 48px auto;
+  padding: 28px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px var(--shadow);
+  border: 1px solid var(--border);
+}
+
+/* Titles & lead */
+.title{
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f1724;
+}
+.lead{
+  margin: 0 0 18px 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Form */
+.loginForm{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.formLabel{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: #111827;
+}
+.labelText{
+  font-weight: 600;
+  font-size: 12px;
+  color: #374151;
+}
+.input{
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #dbeafe;
+  background: #fbfdff;
+  font-size: 14px;
+  outline: none;
+}
+.input:focus{
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(11,99,255,0.06);
+}
+
+/* Actions */
+.actions{
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+.primary{
+  background: var(--primary);
+  color: var(--primary-contrast);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+.primary[disabled]{
+  opacity: 0.6;
+  cursor: default;
+}
+.ghost{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  background: transparent;
+  text-decoration: none;
+}
+
+/* Footer note */
+.footerNote{
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}

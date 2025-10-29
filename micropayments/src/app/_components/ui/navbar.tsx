@@ -1,6 +1,7 @@
 "use client"
 import React from "react";
 import styles from "@/app/_components/styling/home.module.css";
+import Link from "next/link";
 
 export default function Navbar(): React.ReactElement {
   const scrollToContact = (e: React.MouseEvent) => {
@@ -13,14 +14,14 @@ export default function Navbar(): React.ReactElement {
     <nav className={styles.nav}>
       <div className={styles.navInner}>
         <div className={styles.brand}>
-          <span className={styles.brandMark}>LIVE</span>
-          <span className={styles.brandName}>LEDGER</span>
+          <Link href="/" className={styles.brandMark}>LIVE</Link>
+          <Link href="/" className={styles.brandName}>LEDGER</Link>
         </div>
 
         <div className={styles.navLinks}>
           <a href="#contact" onClick={scrollToContact} className={styles.link}>Contact</a>
           <button className={styles.linkBtn}>Sign up</button>
-          <button className={styles.linkBtnAlt}>Log in</button>
+          <Link href="/auth/login" className={styles.linkBtnAlt}>Log in</Link>
         </div>
       </div>
     </nav>

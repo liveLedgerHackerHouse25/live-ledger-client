@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import Navbar from "@/app/_components/ui/navbar";
 import Footer from "@/app/_components/ui/footer";
 import styles from "@/app/_components/styling/home.module.css";
@@ -27,8 +28,12 @@ export default function Home() {
             within a set daily limit.
           </p>
           <div className={styles.ctaRow}>
+            {/* Sign up kept as button (wire up later) */}
             <button className={styles.primary}>Sign up</button>
-            <button className={styles.ghost}>Log in</button>
+            {/* Log in links to the new auth login page */}
+            <Link href="/auth/login" className={styles.ghost}>
+              Log in
+            </Link>
           </div>
         </section>
 
