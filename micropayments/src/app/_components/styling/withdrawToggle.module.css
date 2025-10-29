@@ -1,0 +1,56 @@
+/* edge color variable (current color). default to provided color */
+:root {
+  --edge-color: #13C4A9;
+}
+
+/* container aligned right and nudged slightly from the viewport/content right edge */
+.toggleContainer {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 1.25rem; /* moves toggle slightly from the right */
+  margin-bottom: 0.75rem;
+}
+
+/* pill background is white; border uses edge color */
+.switch {
+  width: 56px;
+  height: 30px;
+  background: #ffffff;
+  border-radius: 999px;
+  border: 2px solid var(--edge-color);
+  padding: 3px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition: box-shadow 140ms ease, transform 120ms ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* knob */
+.knob {
+  width: 22px;
+  height: 22px;
+  background: var(--edge-color);
+  border-radius: 50%;
+  transition: transform 160ms ease;
+  transform: translateX(0);
+  display: block;
+}
+
+/* when ON, move knob to the right inside the pill */
+.on .knob {
+  transform: translateX(26px);
+}
+
+/* accessible focus style */
+.switch:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(19,196,169,0.12);
+}
+
+/* dark-mode tweak: keep pill white but outline slightly different if desired */
+:global(html[data-theme="dark"]) .switch {
+  background: #ffffff; /* still white per request */
+  /* subtle inner shadow for contrast */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}

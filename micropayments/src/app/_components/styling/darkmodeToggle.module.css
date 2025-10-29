@@ -1,0 +1,27 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--text);
+  cursor: pointer;
+  padding: 0;
+  transition: background 150ms ease, transform 120ms ease, box-shadow 150ms ease;
+}
+.toggle:hover {
+  background: rgba(255,255,255,0.06);
+  transform: translateY(-1px);
+}
+.toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.03);
+}
+.icon {
+  width: 18px;
+  height: 18px;
+  color: currentColor;
+}

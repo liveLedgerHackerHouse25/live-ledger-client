@@ -1,0 +1,206 @@
+.sidebarcontainer {
+    min-height: 100vh;
+    width: 12rem;
+    background-color: var(--sidebar-bg); /* use theme variable */
+    color: var(--text); /* use theme text color */
+    overflow: hidden;
+    transition: width 220ms ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* explicit open/closed widths */
+.open {
+    width: 12rem;
+}
+.closed {
+    width: 3.5rem;
+}
+
+/* logo area at the top */
+.logo {
+    height: 3.5rem; /* same height as the toggle */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.6rem;
+    box-sizing: border-box;
+}
+.logoIcon {
+    width: 8rem;
+    height: 2.25rem;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg,#13C4A9,#0ea5a4); /* fallback/edge color */
+    flex: 0 0 auto;
+    overflow: hidden;
+}
+/* new: image styling (Next Image will render an img) */
+.logoImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 6px;
+}
+.logoText {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    transition: opacity 160ms ease, width 160ms ease;
+    white-space: nowrap;
+}
+
+/* move toggle button below logo */
+.toggleButton {
+    position: absolute;
+    top: 3.5rem; /* moved down to sit under the logo */
+    left: 0;
+    height: 3.5rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.6rem;
+    background: transparent;
+    color: var(--text);
+    border: none;
+    cursor: pointer;
+    z-index: 20;
+    font-size: 0.95rem;
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: auto;
+}
+.toggleIcon {
+    font-size: 1.1rem;
+}
+.toggleLabel {
+    transition: opacity 160ms ease;
+}
+.hiddenLabel {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* when collapsed, show icon only — collapse the logo text */
+.closed .logoText {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* also ensure collapsed state reduces padding for logo area if desired */
+.closed .logo {
+    justify-content: center;
+    padding-left: 0.4rem;
+}
+
+/* nav list fills remaining space and spaces items evenly */
+.navList {
+    list-style: none; /* remove bullets */
+    list-style-type: none; /* standard property for compatibility */
+    -webkit-list-style-type: none;
+    margin: 0;
+    padding: 0.75rem 0.5rem;
+    padding-left: 0; /* remove default indent (Safari) */
+    -webkit-padding-start: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly; /* evenly space links vertically */
+    padding-top: 3.75rem; /* leave space for the toggle */
+}
+
+/* nav list items */
+.navItem {
+    list-style: none; /* defensive */
+    list-style-type: none; /* standard property for compatibility */
+    -webkit-list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* hide marker pseudo-element for browsers that still render it (Safari/old) */
+.navItem::marker {
+    content: none;
+    display: none;
+}
+.navItem::-webkit-list-marker {
+    display: none;
+}
+
+/* add: default and dark overrides for sidebar hover and link colors */
+:global(:root) {
+  --sidebar-hover: rgba(0,0,0,0.06); /* light mode default */
+}
+
+/* link visual */
+.link {
+    color: var(--sidebar-link-color, var(--link-color)); /* use sidebar override in dark, fallback in light */
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border-radius: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.link:hover {
+    background: var(--sidebar-hover);
+    text-decoration: none;
+}
+.link, .link:visited {
+    text-decoration: none;
+}
+
+/* icon: size and color */
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    color: var(--sidebar-link-color, var(--muted)); /* match link color in dark, muted in light */
+}
+
+/* ensure SVG strokes/fills follow text color */
+.icon svg {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    fill: none;
+}
+
+/* label */
+.linkLabel {
+    transition: opacity 180ms ease, width 180ms ease;
+    opacity: 1;
+    white-space: nowrap;
+}
+
+/* collapsed label hides text while keeping anchor area for icon (if you add one) */
+.collapsedLabel {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* add: set sidebar-specific link color in dark mode */
+:global(html[data-theme="dark"]) {
+  --sidebar-link-color: var(--text);
+  --sidebar-hover: rgba(255,255,255,0.06); /* visible in dark mode */
+}

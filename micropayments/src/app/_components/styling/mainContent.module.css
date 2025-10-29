@@ -1,0 +1,36 @@
+/* default main background (light mode) */
+:global(:root) {
+  --main-bg: #ffffff;
+}
+
+/* dark mode override: off-black background for main content */
+:global(html[data-theme="dark"]) {
+  --main-bg: #070707; /* off-black */
+}
+
+.content {
+  background: var(--main-bg);
+  flex: 1 1 auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* allow flex children to scroll if needed */
+}
+
+/* top row holds actions aligned to the right (withdraw button) */
+/* changed: space-between so left info and right actions are separated */
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* changed from flex-end */
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* container for the page children */
+.children {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0.5rem;
+  border-radius: 8px;
+}
