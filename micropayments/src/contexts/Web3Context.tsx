@@ -202,9 +202,21 @@ export function Web3Provider({ children }: Web3ProviderProps) {
       await updateBalance(address);
 
     } catch (err: unknown) {
-      console.error('Failed to connect wallet:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to connect wallet';
-      setError(errorMessage);
+      // Normalize error into a readable string for console + UI
+      let normalized: string;
+      try {
+        if (err instanceof Error) normalized = err.message || String(err);
+        else if (typeof err === "string") normalized = err;
+        else {
+          // attempt to stringify non-Error objects (handles {} and other shapes)
+          normalized = JSON.stringify(err) || String(err);
+        }
+      } catch (e) {
+        normalized = String(err);
+      }
+      // Log both the normalized message and the raw object for debugging
+      console.error("Failed to connect wallet:", normalized, err);
+      setError(normalized || "Failed to connect wallet");
     } finally {
       setIsConnecting(false);
     }

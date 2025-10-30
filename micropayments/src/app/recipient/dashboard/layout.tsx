@@ -5,6 +5,7 @@ import Topbar from "@/app/_components/ui/topbar";
 import StreamInfo from "@/app/_components/ui/streamInfo";
 import WalletAside from "@/app/_components/ui/walletAside";
 import mainStyles from "@/app/_components/styling/mainContent.receipient.module.css";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const receipientLinks = [
     { label: "Dashboard", href: "/recipient/dashboard" },
@@ -18,6 +19,7 @@ export default function DashboardLayout({children} : {
     children: React.ReactNode
 }) {
     return (
+        <ProtectedRoute>
         <div style={{ display: "flex", minHeight: "100vh" }}>
             <Sidebar links={receipientLinks}/>
                 <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
@@ -33,5 +35,6 @@ export default function DashboardLayout({children} : {
                   <WalletAside />
               </main>
         </div>
+        </ProtectedRoute>
     )
 }

@@ -16,9 +16,9 @@ export interface IWalletAuthRequest {
   signature: string;
   nonce: string;
   // allow sending multiple roles so a user can be both payer and recipient
-  userTypes?: UserType[];
-  name?: string;
-  email?: string;
+  userType: UserType;
+  name: string;
+  email: string;
 }
 
 export interface IWalletAuthResponse {
@@ -27,10 +27,10 @@ export interface IWalletAuthResponse {
   user: {
     id: string;
     walletAddress: string;
-    email?: string;
-    name?: string;
+    email: string;
+    name: string;
     // backend may return stored roles as an array
-    userTypes?: UserType[];
+    userType: UserType;
   };
 }
 
@@ -217,7 +217,7 @@ export class ApiClient {
     const refresh = this.refreshToken;
     if (!refresh) return false;
     try {
-      const res = await fetch(this.baseUrl + "/auth/refresh", {
+      const res = await fetch(this.baseUrl + "/users/refresh-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken: refresh }),
@@ -258,7 +258,7 @@ export class ApiClient {
   async refreshTokens(): Promise<IWalletAuthResponse> {
     const refresh = this.refreshToken;
     if (!refresh) throw new Error("No refresh token");
-    const res = await fetch(this.baseUrl + "/auth/refresh", {
+    const res = await fetch(this.baseUrl + "/users/refresh-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken: refresh }),
@@ -339,6 +339,29 @@ export class ApiClient {
 
     return ws;
   }
+
+  // Convenience helpers that delegate to request(...)
+  async get<T = unknown>(path: string, opts: RequestInit = {}) {
+    return this.request<T>(path, { ...opts, method: "GET" });
+  }
+
+  async post<T = unknown>(path: string, body?: unknown, opts: RequestInit = {}) {
+    const init = { ...opts, method: "POST" } as RequestInit;
+    if (body !== undefined) init.body = JSON.stringify(body);
+    return this.request<T>(path, init);
+  }
+
+  async put<T = unknown>(path: string, body?: unknown, opts: RequestInit = {}) {
+    const init = { ...opts, method: "PUT" } as RequestInit;
+    if (body !== undefined) init.body = JSON.stringify(body);
+    return this.request<T>(path, init);
+  }
+
+  async delete<T = unknown>(path: string, body?: unknown, opts: RequestInit = {}) {
+    const init = { ...opts, method: "DELETE" } as RequestInit;
+    if (body !== undefined) init.body = JSON.stringify(body);
+    return this.request<T>(path, init);
+  }
 }
 
 // compute runtime base URL:
@@ -350,10 +373,37 @@ const getRuntimeBaseUrl = () => {
     const serverUrl = process.env.API_BASE_URL || "";
     if (typeof window !== "undefined") {
       // client runtime
-      return (publicUrl && publicUrl.length > 0) ? publicUrl : (serverUrl && serverUrl.length > 0) ? serverUrl : "/api";
+      // - prefer client-exposed NEXT_PUBLIC_API_BASE_URL when set
+      // - ensure the returned client base ends with "/api" (avoid double slashes)
+      if (publicUrl && publicUrl.length > 0) {
+        try {
+          const u = new URL(publicUrl);
+          const normalizedPath = (u.pathname || "").replace(/\/+$/, "");
+          // if pathname is empty or "/", use origin + /api
+          if (!normalizedPath || normalizedPath === "") {
+            return u.origin + "/api";
+          }
+          // if already ends with /api, return full url without trailing slash
+          if (normalizedPath.endsWith("/api")) {
+            return u.origin + normalizedPath;
+          }
+          // otherwise append /api to the existing pathname
+          return u.origin + normalizedPath + "/api";
+        } catch {
+          // relative path (e.g. "/v1" or "/api") — normalize and ensure /api suffix
+          const rel = publicUrl.replace(/\/+$/, "");
+          return rel.endsWith("/api") ? rel : rel + "/api";
+        }
+      }
+      return "/api";
     } else {
-      // server runtime (SSR / node)
-      return (serverUrl && serverUrl.length > 0) ? serverUrl : (publicUrl && publicUrl.length > 0) ? publicUrl : "http://localhost:3000";
+      // server runtime (SSR / node):
+      // - prefer server-side API_BASE_URL, fallback to NEXT_PUBLIC_API_BASE_URL, then localhost
+      return serverUrl && serverUrl.length > 0
+        ? serverUrl
+        : publicUrl && publicUrl.length > 0
+        ? publicUrl
+        : "http://localhost:3000";
     }
   } catch {
     return "/api";

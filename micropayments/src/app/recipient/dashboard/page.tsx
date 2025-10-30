@@ -148,111 +148,113 @@ export default function RecipientDashboard(): React.ReactElement {
         <div style={{ 
           textAlign: "center", 
           padding: "60px 20px",
-          backgroundColor: "rgba(255,255,255,0.02)",
+          backgroundColor: "var(--card-bg)",
           borderRadius: "12px",
           margin: "20px"
         }}>
-          <h2 style={{ color: "#055F59", marginBottom: "16px" }}>Connect Your Wallet</h2>
-          <p style={{ color: "rgba(230,238,240,0.8)", marginBottom: "24px" }}>
-            Please connect your wallet to access the recipient dashboard and view your incoming payment streams.
-          </p>
-          <button 
-            onClick={() => window.dispatchEvent(new CustomEvent("openWallet"))}
-            style={{
-              backgroundColor: "#055F59",
-              color: "#ffffff",
-              padding: "12px 24px",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "16px"
-            }}
-          >
-            Connect Wallet
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.content}>
-      {/* Stats Overview */}
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
-        gap: "16px", 
-        marginBottom: "32px",
-        padding: "0 20px"
-      }}>
-        <div style={{ 
-          backgroundColor: "rgba(255,255,255,0.02)", 
-          padding: "20px", 
-          borderRadius: "12px",
-          border: "1px solid rgba(255,255,255,0.1)"
-        }}>
-          <h3 style={{ color: "#055F59", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
-            Total Earned
-          </h3>
-          <p style={{ color: "#ffffff", margin: 0, fontSize: "24px", fontWeight: "600" }}>
-            ${totalEarned.toFixed(2)}
-          </p>
-        </div>
-
-        <div style={{ 
-          backgroundColor: "rgba(255,255,255,0.02)", 
-          padding: "20px", 
-          borderRadius: "12px",
-          border: "1px solid rgba(255,255,255,0.1)"
-        }}>
-          <h3 style={{ color: "#055F59", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
-            Total Withdrawn
-          </h3>
-          <p style={{ color: "#ffffff", margin: 0, fontSize: "24px", fontWeight: "600" }}>
-            ${totalWithdrawn.toFixed(2)}
-          </p>
-        </div>
-
-        <div style={{ 
-          backgroundColor: "rgba(255,255,255,0.02)", 
-          padding: "20px", 
-          borderRadius: "12px",
-          border: "1px solid rgba(255,255,255,0.1)"
-        }}>
-          <h3 style={{ color: "#055F59", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
-            Available to Withdraw
-          </h3>
-          <p style={{ color: "#ffffff", margin: 0, fontSize: "24px", fontWeight: "600" }}>
-            ${(totalEarned - totalWithdrawn).toFixed(2)}
-          </p>
-        </div>
-      </div>
-
-      {/* Received Streams */}
-      <div style={{ padding: "0 20px" }}>
-        <h2 style={{ color: "#055F59", marginBottom: "20px" }}>Incoming Payment Streams</h2>
+          <h2 style={{ color: "#055F59", marginBottom: "16px" }}>
+            Connect Your Wallet
+           </h2>
+          <p style={{ color: "var(--muted)", marginBottom: "24px" }}>
+             Please connect your wallet to access the recipient dashboard and view your incoming payment streams.
+           </p>
+           <button 
+             onClick={() => window.dispatchEvent(new CustomEvent("openWallet"))}
+             style={{
+              backgroundColor: "var(--primary)",
+              color: "var(--button-text)",
+               padding: "12px 24px",
+               borderRadius: "8px",
+               border: "none",
+               cursor: "pointer",
+               fontSize: "16px"
+             }}
+           >
+             Connect Wallet
+           </button>
+         </div>
+       </div>
+     );
+   }
+ 
+   return (
+     <div className={styles.content}>
+       {/* Stats Overview */}
+       <div style={{ 
+         display: "grid", 
+         gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
+         gap: "16px", 
+         marginBottom: "32px",
+         padding: "0 20px"
+       }}>
+         <div style={{ 
+          backgroundColor: "var(--card-bg)", 
+           padding: "20px", 
+           borderRadius: "12px",
+          border: "1px solid var(--card-border)"
+         }}>
+           <h3 style={{ color: "#055F59", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
+             Total Earned
+           </h3>
+          <p style={{ color: "var(--text)", margin: 0, fontSize: "24px", fontWeight: "600" }}>
+             ${totalEarned.toFixed(2)}
+           </p>
+         </div>
+ 
+         <div style={{ 
+          backgroundColor: "var(--card-bg)", 
+           padding: "20px", 
+           borderRadius: "12px",
+          border: "1px solid var(--card-border)"
+         }}>
+           <h3 style={{ color: "#055F59", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
+             Total Withdrawn
+           </h3>
+          <p style={{ color: "var(--text)", margin: 0, fontSize: "24px", fontWeight: "600" }}>
+             ${totalWithdrawn.toFixed(2)}
+           </p>
+         </div>
+ 
+         <div style={{ 
+          backgroundColor: "var(--card-bg)", 
+           padding: "20px", 
+           borderRadius: "12px",
+          border: "1px solid var(--card-border)"
+         }}>
+           <h3 style={{ color: "#055F59", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
+             Available to Withdraw
+           </h3>
+          <p style={{ color: "var(--text)", margin: 0, fontSize: "24px", fontWeight: "600" }}>
+             ${(totalEarned - totalWithdrawn).toFixed(2)}
+           </p>
+         </div>
+       </div>
+ 
+       {/* Received Streams */}
+       <div style={{ padding: "0 20px" }}>
+        <h2 style={{ color: "var(--primary)", marginBottom: "20px" }}>Incoming Payment Streams</h2>
         
         {loading ? (
           <div style={{ textAlign: "center", padding: "40px" }}>
-            <p style={{ color: "rgba(230,238,240,0.8)" }}>Loading your streams...</p>
+            <p style={{ color: "var(--muted)" }}>Loading your streams...</p>
           </div>
         ) : receivedStreams.length === 0 ? (
-          <div style={{ 
-            textAlign: "center", 
+          <div style={{
+            textAlign: "center",
             padding: "40px",
-            backgroundColor: "rgba(255,255,255,0.02)",
+            backgroundColor: "var(--card-bg)",
             borderRadius: "12px"
           }}>
-            <p style={{ color: "rgba(230,238,240,0.8)", marginBottom: "16px" }}>
+            <p style={{ color: "var(--muted)", marginBottom: "16px" }}>
               No incoming streams yet. Share your wallet address with payers to start receiving payments!
             </p>
-            <div style={{ 
-              backgroundColor: "rgba(255,255,255,0.1)", 
-              padding: "12px", 
+            <div style={{
+              backgroundColor: "var(--progress-bg)",
+              padding: "12px",
               borderRadius: "8px",
               fontFamily: "monospace",
               fontSize: "14px",
-              color: "#ffffff",
+              color: "var(--text)",
               marginTop: "16px"
             }}>
               {account}
@@ -261,133 +263,134 @@ export default function RecipientDashboard(): React.ReactElement {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             {receivedStreams.map((stream) => {
-              const currentEarned = calculateCurrentEarned(stream);
-              const withdrawable = calculateWithdrawable(stream);
-              const progress = (currentEarned / stream.totalAmount) * 100;
-              
-              return (
-                <div 
-                  key={stream.id}
-                  style={{ 
-                    backgroundColor: "rgba(255,255,255,0.02)", 
-                    padding: "24px", 
-                    borderRadius: "12px",
-                    border: "1px solid rgba(255,255,255,0.1)"
-                  }}
-                >
-                  <div style={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    alignItems: "flex-start",
-                    marginBottom: "16px"
-                  }}>
-                    <div>
-                      <h3 style={{ 
-                        color: "#ffffff", 
-                        margin: "0 0 8px 0", 
-                        fontSize: "18px",
-                        fontWeight: "600"
-                      }}>
-                        Stream from {formatAddress(stream.payer)}
-                      </h3>
-                      <p style={{ 
-                        color: "rgba(230,238,240,0.8)", 
-                        margin: 0,
-                        fontSize: "14px"
-                      }}>
-                        Rate: ${stream.rate}/sec • Total: ${stream.totalAmount}
-                      </p>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ 
-                        color: "#055F59", 
-                        fontSize: "18px", 
-                        fontWeight: "600" 
-                      }}>
-                        ${currentEarned.toFixed(2)}
-                      </div>
-                      <div style={{ 
-                        color: "rgba(230,238,240,0.6)", 
-                        fontSize: "12px" 
-                      }}>
-                        earned
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Progress bar */}
-                  <div style={{ 
-                    backgroundColor: "rgba(255,255,255,0.1)", 
-                    borderRadius: "4px", 
-                    height: "8px",
-                    marginBottom: "16px"
-                  }}>
-                    <div style={{ 
-                      backgroundColor: "#055F59", 
-                      borderRadius: "4px", 
-                      height: "100%",
-                      width: `${Math.min(progress, 100)}%`,
-                      transition: "width 0.3s ease"
-                    }} />
-                  </div>
-                  
-                  {/* Withdrawal section */}
-                  <div style={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    alignItems: "center",
-                    marginBottom: "12px"
-                  }}>
-                    <div>
-                      <div style={{ color: "#ffffff", fontSize: "14px", fontWeight: "500" }}>
-                        Available: ${withdrawable.toFixed(2)}
-                      </div>
-                      <div style={{ 
-                        color: "rgba(230,238,240,0.6)", 
-                        fontSize: "12px" 
-                      }}>
-                        Daily withdrawals: {stream.dailyWithdrawalsUsed}/{stream.maxWithdrawalsPerDay}
-                      </div>
-                    </div>
-                    
-                    <button
-                      onClick={() => handleWithdraw(stream.id)}
-                      disabled={!canWithdraw(stream) || withdrawing === stream.id}
-                      style={{
-                        backgroundColor: canWithdraw(stream) ? "#055F59" : "rgba(255,255,255,0.1)",
-                        color: canWithdraw(stream) ? "#ffffff" : "rgba(255,255,255,0.4)",
-                        padding: "8px 16px",
-                        borderRadius: "6px",
-                        border: "none",
-                        cursor: canWithdraw(stream) ? "pointer" : "not-allowed",
-                        fontSize: "14px",
-                        fontWeight: "500"
-                      }}
-                    >
-                      {withdrawing === stream.id ? "Withdrawing..." : "Withdraw"}
-                    </button>
-                  </div>
-                  
-                  <div style={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    fontSize: "12px",
-                    color: "rgba(230,238,240,0.6)"
-                  }}>
-                    <span>Started: {stream.startTime.toLocaleDateString()}</span>
-                    <span>
-                      {stream.lastWithdrawal 
-                        ? `Last withdrawal: ${stream.lastWithdrawal.toLocaleString()}`
-                        : "No withdrawals yet"
-                      }
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+               const currentEarned = calculateCurrentEarned(stream);
+               const withdrawable = calculateWithdrawable(stream);
+               const progress = (currentEarned / stream.totalAmount) * 100;
+               
+               return (
+                 <div 
+                   key={stream.id}
+                   style={{ 
+                     backgroundColor: "var(--card-bg)", 
+                     padding: "24px", 
+                     borderRadius: "12px",
+                     border: "1px solid var(--card-border)"
+                   }}
+                 >
+                   <div style={{ 
+                     display: "flex", 
+                     justifyContent: "space-between", 
+                     alignItems: "flex-start",
+                     marginBottom: "16px"
+                   }}>
+                     <div>
+                       <h3 style={{ 
+                         color: "var(--text)", 
+                         margin: "0 0 8px 0", 
+                         fontSize: "18px",
+                         fontWeight: "600",
+                         zIndex: 1000
+                       }}>
+                         Stream from {formatAddress(stream.payer)}
+                       </h3>
+                       <p style={{ 
+                         color: "var(--muted)", 
+                         margin: 0,
+                         fontSize: "14px"
+                       }}>
+                         Rate: ${stream.rate}/sec • Total: ${stream.totalAmount}
+                       </p>
+                     </div>
+                     <div style={{ textAlign: "right" }}>
+                       <div style={{ 
+                         color: "var(--primary)", 
+                         fontSize: "18px", 
+                         fontWeight: "600" 
+                       }}>
+                         ${currentEarned.toFixed(2)}
+                       </div>
+                       <div style={{ 
+                         color: "var(--muted)", 
+                         fontSize: "12px" 
+                       }}>
+                         earned
+                       </div>
+                     </div>
+                   </div>
+                   
+                   {/* Progress bar */}
+                   <div style={{ 
+                     backgroundColor: "var(--progress-bg)", 
+                     borderRadius: "4px", 
+                     height: "8px",
+                     marginBottom: "16px"
+                   }}>
+                     <div style={{ 
+                       backgroundColor: "var(--primary)", 
+                       borderRadius: "4px", 
+                       height: "100%",
+                       width: `${Math.min(progress, 100)}%`,
+                       transition: "width 0.3s ease"
+                     }} />
+                   </div>
+                   
+                   {/* Withdrawal section */}
+                   <div style={{ 
+                     display: "flex", 
+                     justifyContent: "space-between", 
+                     alignItems: "center",
+                     marginBottom: "12px"
+                   }}>
+                     <div>
+                       <div style={{ color: "var(--text)", fontSize: "14px", fontWeight: "500" }}>
+                         Available: ${withdrawable.toFixed(2)}
+                       </div>
+                       <div style={{ 
+                         color: "var(--muted)", 
+                         fontSize: "12px" 
+                       }}>
+                         Daily withdrawals: {stream.dailyWithdrawalsUsed}/{stream.maxWithdrawalsPerDay}
+                       </div>
+                     </div>
+                     
+                     <button
+                       onClick={() => handleWithdraw(stream.id)}
+                       disabled={!canWithdraw(stream) || withdrawing === stream.id}
+                       style={{
+                         backgroundColor: canWithdraw(stream) ? "var(--primary)" : "var(--card-disabled)",
+                         color: canWithdraw(stream) ? "var(--button-text)" : "var(--muted)",
+                         padding: "8px 16px",
+                         borderRadius: "6px",
+                         border: "none",
+                         cursor: canWithdraw(stream) ? "pointer" : "not-allowed",
+                         fontSize: "14px",
+                         fontWeight: "500"
+                       }}
+                     >
+                       {withdrawing === stream.id ? "Withdrawing..." : "Withdraw"}
+                     </button>
+                   </div>
+                   
+                   <div style={{ 
+                     display: "flex", 
+                     justifyContent: "space-between", 
+                     fontSize: "12px",
+                     color: "var(--muted)"
+                   }}>
+                     <span>Started: {stream.startTime.toLocaleDateString()}</span>
+                     <span>
+                       {stream.lastWithdrawal 
+                         ? `Last withdrawal: ${stream.lastWithdrawal.toLocaleString()}`
+                         : "No withdrawals yet"
+                       }
+                     </span>
+                   </div>
+                 </div>
+               );
+             })}
+           </div>
+         )}
+       </div>
+     </div>
+   );
+ }
