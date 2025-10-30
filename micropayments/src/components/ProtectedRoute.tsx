@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
@@ -16,31 +16,53 @@ export default function ProtectedRoute({ children, redirectTo = "/auth/login" }:
 
   useEffect(() => {
     let mounted = true;
+
+    const waitFor = (predicate: () => boolean, timeout = 5000) =>
+      new Promise<boolean>((resolve) => {
+        const interval = 100;
+        let waited = 0;
+        const t = setInterval(() => {
+          if (predicate() || waited >= timeout) {
+            clearInterval(t);
+            resolve(Boolean(predicate()));
+          }
+          waited += interval;
+        }, interval);
+      });
+
     const check = async () => {
       try {
-        // attempt to fetch current user; backend should return 401 or null when unauthenticated
-        const me = await api.request("/auth/me");
+        console.debug("[ProtectedRoute] fetching /auth/me");
+        const me = await api.get("/auth/me");
+        console.debug("[ProtectedRoute] /auth/me result:", me);
+
+        // 🧩 Fix: handle your actual response shape
+        const user = me?.data?.user ?? me?.user ?? me;
         if (!mounted) return;
 
-        // basic check: if me is falsy or missing an id redirect to login
-        if (!me || me?.error || !(me.id || me._id || me.email)) {
+        if (!user || !(user.id || user._id || user.email)) {
+          console.debug("[ProtectedRoute] no valid user, redirecting:", redirectTo);
           router.push(redirectTo);
           return;
         }
+
         setChecking(false);
       } catch (err) {
-        if (mounted) {
-          // network/unauthenticated -> redirect
-          router.push(redirectTo);
-        }
+        console.error("[ProtectedRoute] auth check failed:", err);
+        if (mounted) router.push(redirectTo);
       }
     };
 
-    // If wallet connection is required for auth, wait for isConnected to be true first.
-    // Otherwise, still attempt check (useful when session cookie exists).
-    if (isConnected || !isConnected) {
-      check();
-    }
+    (async () => {
+      try {
+        await waitFor(() => !!api.token || isConnected, 5000);
+        if (!mounted) return;
+        await check();
+      } catch (e) {
+        console.error("[ProtectedRoute] unexpected error:", e);
+        if (mounted) router.push(redirectTo);
+      }
+    })();
 
     return () => {
       mounted = false;
@@ -48,7 +70,6 @@ export default function ProtectedRoute({ children, redirectTo = "/auth/login" }:
   }, [router, redirectTo, isConnected]);
 
   if (checking) {
-    // minimal loading UI - replace with your app spinner if you have one
     return (
       <div style={{ padding: 24, textAlign: "center" }}>
         Checking authentication...

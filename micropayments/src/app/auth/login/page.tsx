@@ -41,7 +41,6 @@ export default function LoginPage() {
   // When a user selects a role: update backend profile and route to the appropriate dashboard
   const handleRoleSelect = async (role: "PAYER" | "RECIPIENT") => {
     setError(null);
-    // require wallet connected (backend will associate profile with wallet session)
     if (!isConnected || !account) {
       setError("Please connect your wallet before selecting a role.");
       return;
@@ -49,14 +48,9 @@ export default function LoginPage() {
 
     setUserType(role);
     try {
-      // update user profile on backend with selected userType
-      await api.request("/api/users/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userType: role }),
-      });
+      // Use PUT to update profile
+      await api.put("/users/profile", { userType: role });
 
-      // route immediately based on selected role
       if (role === "PAYER") {
         router.push("/payer/dashboard");
       } else {
@@ -111,6 +105,8 @@ export default function LoginPage() {
       const me = await api.request("/auth/me");
       console.log("Authenticated user:", me);
 
+      // capture selected role before clearing state
+      const selectedRole = userType;
       setSuccess("Login Successful!");
 
       // reset local fields if desired
@@ -118,20 +114,11 @@ export default function LoginPage() {
       setEmail("");
       setUserType("PAYER");
 
-      // redirect: prefer payer dashboard when user can be payer, otherwise recipient
-      setTimeout(() => {
-        // support both new single-field userType and legacy array userTypes
-        const isPayer =
-          auth?.user?.userType === "PAYER" ||
-          auth?.user?.userType?.includes?.("PAYER") ||
-          userType === "PAYER";
-        if (isPayer) {
-          router.push("/payer/dashboard");
-        } else {
-          router.push("/recipient/dashboard");
-        }
-      }, 1500); // Show success message briefly before redirect
-
+      // immediate redirect using captured selectedRole (avoid relying on cleared state)
+      const isPayer = auth?.user?.userType === "PAYER" || selectedRole === "PAYER";
+      const target = isPayer ? "/payer/dashboard" : "/recipient/dashboard";
+      console.debug("Redirecting to:", target);
+      router.push(target);
     } catch (err: unknown) {
       console.error("Signup error:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to login — try again.";

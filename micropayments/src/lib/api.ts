@@ -171,6 +171,29 @@ export class ApiClient {
     if (payload?.token && payload?.refreshToken) this.setTokens(String(payload.token), String(payload.refreshToken));
     return payload as IWalletAuthResponse;
   }
+
+  // Convenience helpers that delegate to request(...)
+  async get<T = any>(path: string, opts: RequestInit = {}) {
+    return this.request<T>(path, { ...opts, method: "GET" });
+  }
+
+  async post<T = any>(path: string, body?: unknown, opts: RequestInit = {}) {
+    const init = { ...opts, method: "POST" } as RequestInit;
+    if (body !== undefined) init.body = JSON.stringify(body);
+    return this.request<T>(path, init);
+  }
+
+  async put<T = any>(path: string, body?: unknown, opts: RequestInit = {}) {
+    const init = { ...opts, method: "PUT" } as RequestInit;
+    if (body !== undefined) init.body = JSON.stringify(body);
+    return this.request<T>(path, init);
+  }
+
+  async delete<T = any>(path: string, body?: unknown, opts: RequestInit = {}) {
+    const init = { ...opts, method: "DELETE" } as RequestInit;
+    if (body !== undefined) init.body = JSON.stringify(body);
+    return this.request<T>(path, init);
+  }
 }
 
 // compute runtime base URL:
