@@ -92,7 +92,7 @@ export default function LoginPage() {
     try {
       // 1) request nonce from backend
       const nonceResp = await api.getNonce({ walletAddress: account });
-      const message = `Welcome to LiveLedger! Sign this message to authenticate your wallet. Nonce: ${nonceResp.nonce} This request will not trigger a blockchain transaction or cost any gas fees.`;
+      const message = `Welcome to LiveLedger!\n\nSign this message to authenticate your wallet.\n\nNonce: ${nonceResp.nonce}\n\nThis request will not trigger a blockchain transaction or cost any gas fees.`;
 
       // 2) Sign message using our Web3Context signer
       const signature = await signMessage(message);
