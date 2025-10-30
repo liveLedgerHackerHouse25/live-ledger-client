@@ -24,6 +24,7 @@ export default function PayerStreamForm({ onCreate }: { onCreate: (s: StreamPayl
   const [recipient, setRecipient] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
   const [durationDays, setDurationDays] = useState("");
+  const [ratePerDay, setRatePerDay] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +54,18 @@ export default function PayerStreamForm({ onCreate }: { onCreate: (s: StreamPayl
 
   const { ratePerSecond, durationSeconds, isValid } = calculateStreamParams();
 
+  // If the user provides a rate (per day), compute durationDays = amount / rate
+  useEffect(() => {
+    const amount = parseFloat(totalAmount);
+    const rate = parseFloat(ratePerDay);
+    if (isNaN(amount) || isNaN(rate) || rate <= 0 || amount <= 0) return;
+
+    const days = amount / rate;
+    // keep up to 4 decimal places
+    const daysStr = Number.isFinite(days) ? String(Number(days.toFixed(4))) : "";
+    setDurationDays(daysStr);
+  }, [ratePerDay, totalAmount]);
+
   function uid() {
     return Math.random().toString(36).slice(2, 9);
   }
@@ -64,9 +77,12 @@ export default function PayerStreamForm({ onCreate }: { onCreate: (s: StreamPayl
     
     if (!recipient) return setError("Recipient address is required.");
     if (!totalAmount || parseFloat(totalAmount) <= 0) return setError("Total amount must be a positive number.");
-    if (!durationDays || parseFloat(durationDays) <= 0) return setError("Duration must be a positive number of days.");
+  // Require either a positive duration or a positive rate per day
+  const hasValidDuration = !!durationDays && !isNaN(parseFloat(durationDays)) && parseFloat(durationDays) > 0;
+  const hasValidRate = !!ratePerDay && !isNaN(parseFloat(ratePerDay)) && parseFloat(ratePerDay) > 0;
+  if (!hasValidDuration && !hasValidRate) return setError("Provide a positive duration (days) or a positive rate (per day).");
 
-    if (!isValid) return setError("Please enter valid amount and duration values.");
+  if (!isValid) return setError("Please enter valid amount and duration values.");
 
     // Check if wallet is connected
     if (!isConnected) {
@@ -264,24 +280,38 @@ export default function PayerStreamForm({ onCreate }: { onCreate: (s: StreamPayl
         <div className={styles.col}>
           <label className={styles.field}>
             <span className={styles.label}>Duration (Days)</span>
-            <div style={{ position: 'relative' }}>
-              <input
-                className={styles.input}
-                style={{ paddingRight: '45px', fontSize: '1.1rem', fontWeight: '500' }}
-                value={durationDays}
-                onChange={(e) => setDurationDays(e.target.value)}
-                placeholder="30"
-                inputMode="decimal"
-                required
-              />
-              <span style={{ 
-                position: 'absolute', 
-                right: '12px', 
-                top: '50%', 
-                transform: 'translateY(-50%)', 
-                color: '#666',
-                fontSize: '0.9rem'
-              }}>days</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  className={styles.input}
+                  style={{ flex: 1, fontSize: '1rem' }}
+                  value={ratePerDay}
+                  onChange={(e) => setRatePerDay(e.target.value)}
+                  placeholder="Rate per day (e.g. 4.00)"
+                  inputMode="decimal"
+                />
+                <div style={{ alignSelf: 'center', color: '#666' }}>$/day</div>
+              </div>
+
+              <div style={{ position: 'relative' }}>
+                <input
+                  className={styles.input}
+                  style={{ paddingRight: '45px', fontSize: '1.1rem', fontWeight: '500' }}
+                  value={durationDays}
+                  onChange={(e) => setDurationDays(e.target.value)}
+                  placeholder="30"
+                  inputMode="decimal"
+                  required={!ratePerDay}
+                />
+                <span style={{ 
+                  position: 'absolute', 
+                  right: '12px', 
+                  top: '50%', 
+                  transform: 'translateY(-50%)', 
+                  color: '#666',
+                  fontSize: '0.9rem'
+                }}>days</span>
+              </div>
             </div>
             <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '4px', display: 'block' }}>
               How long the stream will last
@@ -376,6 +406,7 @@ export default function PayerStreamForm({ onCreate }: { onCreate: (s: StreamPayl
             setRecipient("");
             setTotalAmount("");
             setDurationDays("");
+            setRatePerDay("");
             setNote("");
             setError(null);
             setAdjustmentInfo(null);
