@@ -84,19 +84,19 @@ export default function PayerDashboard(): React.ReactElement {
         <div style={{ 
           textAlign: "center", 
           padding: "60px 20px",
-          backgroundColor: "rgba(255,255,255,0.02)",
+          backgroundColor: "var(--card-bg)",
           borderRadius: "12px",
           margin: "20px"
         }}>
-          <h2 style={{ color: "#055F59", marginBottom: "16px" }}>Connect Your Wallet</h2>
-          <p style={{ color: "rgba(230,238,240,0.8)", marginBottom: "24px" }}>
+          <h2 style={{ color: "var(--primary)", marginBottom: "16px" }}>Connect Your Wallet</h2>
+          <p style={{ color: "var(--muted)", marginBottom: "24px" }}>
             Please connect your wallet to access the payer dashboard and manage your payment streams.
           </p>
           <button 
             onClick={() => window.dispatchEvent(new CustomEvent("openWallet"))}
             style={{
-              backgroundColor: "#055F59",
-              color: "#ffffff",
+              backgroundColor: "var(--primary)",
+              color: "var(--button-text)",
               padding: "12px 24px",
               borderRadius: "8px",
               border: "none",
@@ -122,43 +122,43 @@ export default function PayerDashboard(): React.ReactElement {
         padding: "0 20px"
       }}>
         <div style={{ 
-          backgroundColor: "rgba(255,255,255,0.02)", 
+          backgroundColor: "var(--card-bg)", 
           padding: "20px", 
           borderRadius: "12px",
-          border: "1px solid rgba(255,255,255,0.1)"
+          border: "1px solid var(--card-border)"
         }}>
-          <h3 style={{ color: "#055F59", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
+          <h3 style={{ color: "var(--primary)", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
             Wallet Balance
           </h3>
-          <p style={{ color: "#ffffff", margin: 0, fontSize: "24px", fontWeight: "600" }}>
+          <p style={{ color: "var(--text)", margin: 0, fontSize: "24px", fontWeight: "600" }}>
             {parseFloat(balance).toFixed(4)} ETH
           </p>
         </div>
 
         <div style={{ 
-          backgroundColor: "rgba(255,255,255,0.02)", 
+          backgroundColor: "var(--card-bg)", 
           padding: "20px", 
           borderRadius: "12px",
-          border: "1px solid rgba(255,255,255,0.1)"
+          border: "1px solid var(--card-border)"
         }}>
-          <h3 style={{ color: "#055F59", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
+          <h3 style={{ color: "var(--primary)", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
             Active Streams
           </h3>
-          <p style={{ color: "#ffffff", margin: 0, fontSize: "24px", fontWeight: "600" }}>
+          <p style={{ color: "var(--text)", margin: 0, fontSize: "24px", fontWeight: "600" }}>
             {activeStreams.length}
           </p>
         </div>
 
         <div style={{ 
-          backgroundColor: "rgba(255,255,255,0.02)", 
+          backgroundColor: "var(--card-bg)", 
           padding: "20px", 
           borderRadius: "12px",
-          border: "1px solid rgba(255,255,255,0.1)"
+          border: "1px solid var(--card-border)"
         }}>
-          <h3 style={{ color: "#055F59", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
+          <h3 style={{ color: "var(--primary)", margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500" }}>
             Total Streamed
           </h3>
-          <p style={{ color: "#ffffff", margin: 0, fontSize: "24px", fontWeight: "600" }}>
+          <p style={{ color: "var(--text)", margin: 0, fontSize: "24px", fontWeight: "600" }}>
             ${totalStreamed.toFixed(2)}
           </p>
         </div>
@@ -207,7 +207,7 @@ export default function PayerDashboard(): React.ReactElement {
                   }}>
                     <div>
                       <h3 style={{ 
-                        color: "#ffffff", 
+                        color: "var(--text)", 
                         margin: "0 0 8px 0", 
                         fontSize: "18px",
                         fontWeight: "600"
@@ -215,7 +215,7 @@ export default function PayerDashboard(): React.ReactElement {
                         Stream to {formatAddress(stream.recipient)}
                       </h3>
                       <p style={{ 
-                        color: "rgba(230,238,240,0.8)", 
+                        color: "var(--muted)", 
                         margin: 0,
                         fontSize: "14px"
                       }}>
@@ -224,14 +224,14 @@ export default function PayerDashboard(): React.ReactElement {
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ 
-                        color: "#055F59", 
+                        color: "var(--primary)", 
                         fontSize: "18px", 
                         fontWeight: "600" 
                       }}>
                         ${currentStreamed.toFixed(2)}
                       </div>
                       <div style={{ 
-                        color: "rgba(230,238,240,0.6)", 
+                        color: "var(--muted)", 
                         fontSize: "12px" 
                       }}>
                         streamed

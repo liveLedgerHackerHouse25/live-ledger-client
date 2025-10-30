@@ -1,20 +1,39 @@
 /* default main background (light mode) */
 :global(:root) {
   --main-bg: #ffffff;
+
+  /* theme tokens (light) */
+  --primary: #055F59;
+  --text: #0f172a; /* dark text on light bg */
+  --muted: rgba(17,24,39,0.6);
+  --card-bg: rgba(2,6,23,0.02); /* subtle card bg in light */
+  --card-border: rgba(2,6,23,0.06);
+  --card-disabled: rgba(2,6,23,0.06);
+  --progress-bg: rgba(2,6,23,0.06);
+  --button-text: #ffffff;
 }
 
 /* dark mode override: off-black background for main content */
 :global(html[data-theme="dark"]) {
   --main-bg: #070707; /* off-black */
+  /* theme tokens (dark) */
+  --primary: #055F59;
+  --text: #ffffff;
+  --muted: rgba(230,238,240,0.65);
+  --card-bg: rgba(255,255,255,0.02);
+  --card-border: rgba(255,255,255,0.08);
+  --card-disabled: rgba(255,255,255,0.06);
+  --progress-bg: rgba(255,255,255,0.06);
+  --button-text: #ffffff;
 }
 
 .content {
   /* keep theme bg for bottom (matte black in dark mode) */
   background: var(--main-bg);
   position: relative;        /* allow pseudo-element positioning */
-  overflow: hidden;          /* clip the wave */
+  overflow: visible;         /* allow wave to be visible without cutting children */
   flex: 1 1 auto;
-  padding: 4rem;
+  padding: 6rem 4rem 4rem; /* more top padding so content sits below the wave */
   display: flex;
   flex-direction: column;
   min-height: 0; /* allow flex children to scroll if needed */
@@ -27,21 +46,23 @@
   left: 0;
   right: 0;
   top: 0;
-  height: 80%; /* now reaches halfway down the content area */
-  z-index: 1;
+  height: 25%; /* reduce vertical coverage so it doesn't obscure content */
+  z-index: 0;  /* sit behind page children */
   pointer-events: none;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 1440 320'><path fill='%23055F59' d='M0,64L48,85.3C96,107,192,149,288,154.7C384,160,480,128,576,122.7C672,117,768,139,864,170.7C960,203,1056,245,1152,261.3C1248,277,1344,267,1392,261.3L1440,256L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z'></path></svg>");
   background-repeat: no-repeat;
   background-position: top center;
-  background-size: 100% 100%; /* scale the SVG to fill the larger band */
+  background-size: 100% 100%; /* scale the SVG to fill the band */
+  opacity: 0.75; /* slightly translucent so content reads easily */
   /* subtle overlay gradient to blend the wave into the matte background */
   background-blend-mode: normal;
 }
 
 /* ensure content children sit above the wave */
-.children, .topRow {
+/* Make all direct children of .content render above the wave */
+.content > * {
   position: relative;
-  z-index: 2;
+  z-index: 5; /* higher to ensure nested elements (cards/headers) appear above the wave */
 }
 
 /* container for the page children */
