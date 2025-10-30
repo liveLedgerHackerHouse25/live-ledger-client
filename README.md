@@ -19,13 +19,16 @@ Live Ledger (client) is the front-end application that connects to the Live Ledg
 2. Configure environment (see Configuration).
 3. Start in development mode:
    - npm: `npm run dev`
-4. Open the app at `http://localhost:3000` (port may vary).
+4. Open the app at `http://localhost:3001` (or the port used by your dev script).
 
 ## Configuration
 
 
 ## API & WebSocket usage
 
+
+## Documentation
+For a full summary of recent changes, routes, API integration, auth flow and developer notes see DOCS.md in the project root.
 
 ## Development notes
 - UI framework: (Nextjs/typescript)
