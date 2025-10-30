@@ -3,10 +3,13 @@ import React, { useState } from "react";
 import styles from "../auth.module.css";
 import { useRouter } from "next/navigation";
 import { ethers } from "ethers";
+import { api } from "@/lib/api";
 
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  // allow multiple roles
+  const [userTypes, setUserTypes] = useState<("PAYER" | "RECIPIENT")[]>(["PAYER"]);
   const [walletAddress, setWalletAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +42,7 @@ export default function Signup() {
       }
 
       // support either ethers v5 or v6 provider constructors
-      const ethersAny = ethers as any;
+      const ethersAny = (ethers as any);
       let provider: any | undefined;
 
       if (ethersAny.providers && ethersAny.providers.Web3Provider) {
@@ -68,6 +71,14 @@ export default function Signup() {
     }
   };
 
+  // helper to toggle a role in the array
+  const toggleRole = (role: "PAYER" | "RECIPIENT") => {
+    setUserTypes((prev) => {
+      if (prev.includes(role)) return prev.filter((r) => r !== role);
+      return [...prev, role];
+    });
+  };
+
   const onSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
     setError(null);
@@ -77,19 +88,57 @@ export default function Signup() {
     if (!validateEmail(email)) return setError("Enter a valid email address.");
     if (!walletAddress || !walletAddress.trim()) return setError("Please connect your wallet.");
 
+    // require at least one role
+    if (!userTypes || userTypes.length === 0) return setError("Please select at least one role.");
+
     setLoading(true);
     try {
-      // simulate server call
-      await new Promise((res) => setTimeout(res, 700));
-      console.log("Signup payload:", { name, email, walletAddress });
-      setSuccess("Account created successfully.");
+      // 1) request nonce from backend
+      const nonceResp = await api.getNonce({ walletAddress });
+      const message = `Sign this nonce to authenticate: ${nonceResp.nonce}`;
+
+      // 2) request signature from injected provider (MetaMask)
+      const anyWin = window as any;
+      if (!anyWin?.ethereum) {
+        window.location.assign("https://metamask.io/download.html");
+        return;
+      }
+
+      // personal_sign: params [message, address]
+      const signature = await anyWin.ethereum.request({
+        method: "personal_sign",
+        params: [message, walletAddress],
+      });
+
+      // 3) send wallet auth to backend (include userTypes, name, email)
+      const auth = await api.walletAuth({
+         walletAddress,
+         signature,
+         nonce: nonceResp.nonce,
+         userTypes,
+         name,
+         email,
+       });
+
+      // 4) optionally fetch current user from /auth/me
+      const me = await api.request("/auth/me");
+      console.log("Authenticated user:", me);
+
+      setSuccess("Account created and authenticated.");
+      // reset local fields if desired (but tokens persist in api client)
       setName("");
       setEmail("");
       setWalletAddress("");
-      // optionally redirect to login after success
-      router.push("/auth/login");
-    } catch (err) {
-      setError("Failed to sign up — try again.");
+      setUserTypes(["PAYER"]);
+      // redirect: prefer payer dashboard when user can be payer, otherwise recipient
+      if (auth?.user?.userTypes?.includes("PAYER") || userTypes.includes("PAYER")) {
+        router.push("/payer/dashboard");
+      } else {
+        router.push("/recipient/dashboard");
+      }
+    } catch (err: any) {
+      console.error("Signup error:", err);
+      setError(err?.message ? String(err.message) : "Failed to sign up — try again.");
     } finally {
       setLoading(false);
     }
@@ -124,6 +173,28 @@ export default function Signup() {
             placeholder="you@example.com"
             autoComplete="email"
           />
+        </label>
+
+        <label className={styles.formLabel}>
+          <span className={styles.labelText}>Roles (you can select both)</span>
+          <div style={{ display: "flex", gap: 12, marginTop: 6 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={userTypes.includes("PAYER")}
+                onChange={() => toggleRole("PAYER")}
+              />
+              <span style={{ fontSize: 13 }}>Payer</span>
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={userTypes.includes("RECIPIENT")}
+                onChange={() => toggleRole("RECIPIENT")}
+              />
+              <span style={{ fontSize: 13 }}>Recipient</span>
+            </label>
+          </div>
         </label>
 
         {/* Wallet connect: replace manual input with connect flow */}

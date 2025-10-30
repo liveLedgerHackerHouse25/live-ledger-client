@@ -1,3 +1,5 @@
+export type UserType = "PAYER" | "RECIPIENT";
+
 export interface INonceRequest {
   walletAddress: string;
 }
@@ -11,6 +13,10 @@ export interface IWalletAuthRequest {
   walletAddress: string;
   signature: string;
   nonce: string;
+  // allow sending multiple roles so a user can be both payer and recipient
+  userTypes?: UserType[];
+  name?: string;
+  email?: string;
 }
 
 export interface IWalletAuthResponse {
@@ -21,6 +27,8 @@ export interface IWalletAuthResponse {
     walletAddress: string;
     email?: string;
     name?: string;
+    // backend may return stored roles as an array
+    userTypes?: UserType[];
   };
 }
 
@@ -94,8 +102,18 @@ export class ApiClient {
       const text = await res.text();
       throw new Error(text || res.statusText || `Request failed: ${res.status}`);
     }
-    const data = await res.json().catch(() => (null));
-    return data as T;
+
+    // parse JSON and unwrap common envelope { success: boolean, data: ... }
+    let payload: any = null;
+    try {
+      payload = await res.json();
+      if (payload && typeof payload === "object" && ("success" in payload) && ("data" in payload)) {
+        payload = payload.data;
+      }
+    } catch {
+      payload = null;
+    }
+    return payload as T;
   }
 
   private async attemptRefresh(): Promise<boolean> {
@@ -155,4 +173,23 @@ export class ApiClient {
   }
 }
 
-export const api = new ApiClient(typeof process !== "undefined" && (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL) ? (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL) as string : "/api");
+// compute runtime base URL:
+// - in browser prefer NEXT_PUBLIC_API_BASE_URL (exposed to client builds), fallback to API_BASE_URL or "/api"
+// - on server prefer API_BASE_URL, fallback to NEXT_PUBLIC_API_BASE_URL or http://localhost:3000
+const getRuntimeBaseUrl = () => {
+  try {
+    const publicUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+    const serverUrl = process.env.API_BASE_URL || "";
+    if (typeof window !== "undefined") {
+      // client runtime
+      return (publicUrl && publicUrl.length > 0) ? publicUrl : (serverUrl && serverUrl.length > 0) ? serverUrl : "/api";
+    } else {
+      // server runtime (SSR / node)
+      return (serverUrl && serverUrl.length > 0) ? serverUrl : (publicUrl && publicUrl.length > 0) ? publicUrl : "http://localhost:3000";
+    }
+  } catch {
+    return "/api";
+  }
+};
+
+export const api = new ApiClient(getRuntimeBaseUrl());
