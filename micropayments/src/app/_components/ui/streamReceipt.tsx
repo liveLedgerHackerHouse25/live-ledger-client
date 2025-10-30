@@ -38,21 +38,67 @@ export default function StreamReceipt({ stream }: { stream: StreamPayload }) {
       <dl style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
         <div>
           <dt style={{ fontSize: 12, color: "#9aa7bf" }}>Recipient</dt>
-          <dd style={{ margin: 0, color: "#e6eef0" }}>{stream.recipient}</dd>
+          <dd style={{ margin: 0, color: "#e6eef0", fontSize: 11, fontFamily: "monospace" }}>
+            {stream.recipient.length > 20 ? `${stream.recipient.slice(0, 8)}...${stream.recipient.slice(-6)}` : stream.recipient}
+          </dd>
         </div>
         <div>
           <dt style={{ fontSize: 12, color: "#9aa7bf" }}>Amount</dt>
-          <dd style={{ margin: 0, color: "#e6eef0" }}>{stream.amount}</dd>
+          <dd style={{ margin: 0, color: "#e6eef0" }}>{stream.amount} USDC</dd>
         </div>
         <div>
           <dt style={{ fontSize: 12, color: "#9aa7bf" }}>Rate (per sec)</dt>
-          <dd style={{ margin: 0, color: "#e6eef0" }}>{stream.rate}</dd>
+          <dd style={{ margin: 0, color: "#e6eef0" }}>{stream.rate} USDC</dd>
         </div>
         <div>
-          <dt style={{ fontSize: 12, color: "#9aa7bf" }}>Duration (s)</dt>
-          <dd style={{ margin: 0, color: "#e6eef0" }}>{stream.durationSeconds}</dd>
+          <dt style={{ fontSize: 12, color: "#9aa7bf" }}>Duration</dt>
+          <dd style={{ margin: 0, color: "#e6eef0" }}>{stream.durationSeconds}s</dd>
         </div>
       </dl>
+
+      {/* Transaction info */}
+      {stream.txHash && (
+        <div style={{ marginBottom: 8 }}>
+          <dt style={{ fontSize: 12, color: "#9aa7bf" }}>Transaction</dt>
+          <dd style={{ margin: 0, color: "#e6eef0", fontSize: 11, fontFamily: "monospace" }}>
+            <a 
+              href={`https://sepolia.arbiscan.io/tx/${stream.txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "#13C4A9", textDecoration: "none" }}
+            >
+              {stream.txHash.slice(0, 8)}...{stream.txHash.slice(-6)}
+            </a>
+          </dd>
+        </div>
+      )}
+
+      {/* Stream status */}
+      {stream.status && (
+        <div style={{ marginBottom: 8 }}>
+          <dt style={{ fontSize: 12, color: "#9aa7bf" }}>Status</dt>
+          <dd style={{ margin: 0, display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ 
+              fontSize: 8, 
+              color: stream.status === 'confirmed' ? '#4caf50' : stream.status === 'pending' ? '#ff9800' : '#f44336' 
+            }}>
+              ●
+            </span>
+            <span style={{ 
+              color: "#e6eef0", 
+              textTransform: "capitalize",
+              fontSize: 12
+            }}>
+              {stream.status}
+            </span>
+            {stream.streamId && (
+              <span style={{ fontSize: 11, color: "#9aa7bf", marginLeft: 8 }}>
+                (Stream #{stream.streamId})
+              </span>
+            )}
+          </dd>
+        </div>
+      )}
 
       {stream.receiptNote && (
         <div style={{ marginBottom: 8 }}>

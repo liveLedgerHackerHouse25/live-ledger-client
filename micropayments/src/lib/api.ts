@@ -1,4 +1,6 @@
 export type UserType = "PAYER" | "RECIPIENT";
+export type StreamStatus = "PENDING" | "ACTIVE" | "PAUSED" | "STOPPED" | "COMPLETED";
+export type TransactionType = "STREAM_START" | "STREAM_STOP" | "WITHDRAWAL" | "DEPOSIT";
 
 export interface INonceRequest {
   walletAddress: string;
@@ -44,7 +46,102 @@ export interface IAuthUser {
   name?: string;
 }
 
-type Json = Record<string, unknown>;
+// New streaming types
+export interface StreamCalculation {
+  streamId: string;
+  currentBalance: string;
+  claimableAmount: string;
+  totalStreamed: string;
+  withdrawnAmount: string;
+  progress: number; // Percentage 0-100
+  isActive: boolean;
+  ratePerSecond: string;
+  startTime: number; // Unix timestamp
+  endTime: number | null; // Unix timestamp
+  lastCalculated: number; // Unix timestamp
+}
+
+export interface WithdrawalLimits {
+  maxWithdrawalsPerDay: number;
+  withdrawalsUsedToday: number;
+  remainingWithdrawals: number;
+  canWithdraw: boolean;
+  dayIndex: number; // Days since stream start
+  nextWithdrawalTime: number | null; // Unix timestamp when next withdrawal is allowed
+}
+
+export interface StreamUser {
+  id: string;
+  walletAddress: string;
+  name: string | null;
+  email: string | null;
+}
+
+export interface StreamDetails {
+  id: string;
+  onChainStreamId?: number;
+  payer: StreamUser;
+  recipient: StreamUser;
+  tokenAddress: string;
+  totalAmount: string;
+  status: StreamStatus;
+  startTime: number; // Unix timestamp
+  endTime: number | null; // Unix timestamp
+  calculation: StreamCalculation;
+  withdrawalLimits: WithdrawalLimits;
+  createdAt: number; // Unix timestamp
+  updatedAt: number; // Unix timestamp
+}
+
+export interface CreateStreamRequest {
+  recipientAddress: string;
+  tokenAddress: string;
+  flowRate: string; // Rate per second
+  totalAmount: string;
+  ratePerSecond: string;
+  duration: number; // Duration in seconds
+  maxWithdrawalsPerDay?: number;
+}
+
+export interface PreparedTransaction {
+  to: string;
+  data: string;
+  value: string;
+  gasLimit: string;
+  chainId: number;
+}
+
+export interface CreateStreamResponse {
+  stream: StreamDetails;
+  transaction: PreparedTransaction;
+}
+
+export interface WithdrawalRequest {
+  streamId: string;
+}
+
+export interface WithdrawalResponse {
+  transaction: PreparedTransaction;
+  withdrawalLimits: WithdrawalLimits;
+}
+
+export interface UserBalance {
+  balances: Array<{
+    tokenAddress: string;
+    totalEarned: string;
+    totalWithdrawn: string;
+    availableBalance: string;
+  }>;
+  activeStreams: StreamCalculation[];
+  totalActiveStreams: number;
+}
+
+// WebSocket message types
+export interface WebSocketMessage {
+  type: "STREAM_UPDATE" | "NOTIFICATION";
+  data: StreamCalculation | { type: string; streamId: string; message: string; timestamp: number };
+  timestamp: number;
+}
 
 const TOKEN_KEY = "ll:token";
 const REFRESH_KEY = "ll:refresh";
@@ -69,17 +166,17 @@ export class ApiClient {
     try {
       this.storing.setItem(TOKEN_KEY, token);
       this.storing.setItem(REFRESH_KEY, refreshToken);
-    } catch (e) { /* noop */ }
+    } catch { /* noop */ }
   }
 
   clearTokens() {
     try {
       this.storing.removeItem(TOKEN_KEY);
       this.storing.removeItem(REFRESH_KEY);
-    } catch (e) { /* noop */ }
+    } catch { /* noop */ }
   }
 
-  async request<T = any>(path: string, opts: RequestInit = {}, retryOn401 = true): Promise<T> {
+  async request<T = unknown>(path: string, opts: RequestInit = {}, retryOn401 = true): Promise<T> {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (opts.headers) {
       if (opts.headers instanceof Headers) {
@@ -104,11 +201,11 @@ export class ApiClient {
     }
 
     // parse JSON and unwrap common envelope { success: boolean, data: ... }
-    let payload: any = null;
+    let payload: unknown = null;
     try {
       payload = await res.json();
       if (payload && typeof payload === "object" && ("success" in payload) && ("data" in payload)) {
-        payload = payload.data;
+        payload = (payload as { data: unknown }).data;
       }
     } catch {
       payload = null;
@@ -170,6 +267,77 @@ export class ApiClient {
     const payload = await res.json();
     if (payload?.token && payload?.refreshToken) this.setTokens(String(payload.token), String(payload.refreshToken));
     return payload as IWalletAuthResponse;
+  }
+
+  // Streaming API methods
+  async createStream(request: CreateStreamRequest): Promise<CreateStreamResponse> {
+    return this.request<CreateStreamResponse>("/streams", {
+      method: "POST",
+      body: JSON.stringify(request),
+    });
+  }
+
+  async getStream(streamId: string): Promise<StreamDetails> {
+    return this.request<StreamDetails>(`/streams/${streamId}`);
+  }
+
+  async getUserStreams(
+    status?: StreamStatus,
+    page = 1,
+    limit = 10
+  ): Promise<{
+    streams: StreamDetails[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    const params = new URLSearchParams();
+    if (status) params.append("status", status);
+    params.append("page", page.toString());
+    params.append("limit", limit.toString());
+
+    return this.request(`/streams?${params.toString()}`);
+  }
+
+  async withdrawFromStream(request: WithdrawalRequest): Promise<WithdrawalResponse> {
+    return this.request<WithdrawalResponse>(`/streams/${request.streamId}/withdraw`, {
+      method: "POST",
+    });
+  }
+
+  async cancelStream(streamId: string): Promise<PreparedTransaction> {
+    return this.request<PreparedTransaction>(`/streams/${streamId}/cancel`, {
+      method: "POST",
+    });
+  }
+
+  async confirmStreamTransaction(
+    streamId: string,
+    transactionHash: string,
+    onChainStreamId?: number
+  ): Promise<StreamDetails> {
+    return this.request<StreamDetails>(`/streams/${streamId}/confirm`, {
+      method: "POST",
+      body: JSON.stringify({ transactionHash, onChainStreamId }),
+    });
+  }
+
+  async getUserBalance(tokenAddress?: string): Promise<UserBalance> {
+    const params = tokenAddress ? `?tokenAddress=${tokenAddress}` : "";
+    return this.request<UserBalance>(`/users/balance${params}`);
+  }
+
+  // WebSocket connection management
+  createWebSocketConnection(): WebSocket | null {
+    if (typeof window === "undefined") return null;
+
+    const token = this.token;
+    if (!token) return null;
+
+    const wsBaseUrl = this.baseUrl.replace(/^http/, "ws");
+    const ws = new WebSocket(`${wsBaseUrl}/ws?token=${encodeURIComponent(token)}`);
+
+    return ws;
   }
 }
 

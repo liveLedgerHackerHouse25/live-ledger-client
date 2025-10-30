@@ -1,11 +1,13 @@
 "use client"
 import React, { useEffect, useState } from "react";
 import { useWallet } from "@/contexts/Web3Context";
+import { useSmartContract } from "@/hooks/useSmartContract";
 import styles from "@/app/_components/styling/walletAside.module.css";
 
 export default function WalletAside(): React.ReactElement | null {
   const [open, setOpen] = useState(false);
   const { isConnected, account, balance, connectWallet, disconnectWallet, error, clearError } = useWallet();
+  const { usdcBalance, mintTestUSDC, isLoading: contractLoading } = useSmartContract();
 
   useEffect(() => {
     const onOpen = () => setOpen(true);
@@ -93,27 +95,55 @@ export default function WalletAside(): React.ReactElement | null {
                 {parseFloat(balance).toFixed(4)} ETH
               </div>
               
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+              <div className={styles.balanceLabel}>USDC Balance</div>
+              <div className={styles.balanceValue}>
+                {parseFloat(usdcBalance).toFixed(2)} USDC
+              </div>
+              
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button 
+                    className={styles.addBtn} 
+                    type="button"
+                    onClick={() => window.open(`https://sepolia.arbiscan.io/address/${account}`, '_blank')}
+                    style={{ flex: 1, fontSize: '0.8rem' }}
+                  >
+                    View on Explorer
+                  </button>
+                  <button 
+                    className={styles.addBtn} 
+                    type="button"
+                    onClick={disconnectWallet}
+                    style={{ 
+                      flex: 1, 
+                      fontSize: '0.8rem', 
+                      backgroundColor: '#ff6b6b',
+                      color: 'white'
+                    }}
+                  >
+                    Disconnect
+                  </button>
+                </div>
+                
+                {/* Mint USDC button for testing */}
                 <button 
                   className={styles.addBtn} 
                   type="button"
-                  onClick={() => window.open(`https://sepolia.arbiscan.io/address/${account}`, '_blank')}
-                  style={{ flex: 1, fontSize: '0.8rem' }}
-                >
-                  View on Explorer
-                </button>
-                <button 
-                  className={styles.addBtn} 
-                  type="button"
-                  onClick={disconnectWallet}
+                  onClick={async () => {
+                    try {
+                      await mintTestUSDC("1000");
+                    } catch (err) {
+                      console.error('Failed to mint USDC:', err);
+                    }
+                  }}
+                  disabled={contractLoading}
                   style={{ 
-                    flex: 1, 
                     fontSize: '0.8rem', 
-                    backgroundColor: '#ff6b6b',
+                    backgroundColor: '#4caf50',
                     color: 'white'
                   }}
                 >
-                  Disconnect
+                  {contractLoading ? 'Minting...' : 'Get 1000 Test USDC'}
                 </button>
               </div>
             </div>
