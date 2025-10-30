@@ -21,7 +21,7 @@ export default function DashboardLayout({children} : {
         <div style={{ display: "flex", minHeight: "100vh" }}>
             <Sidebar links={receipientLinks}/>
                 <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                   <Topbar title="Receipient Dashboard" subtitle="Welcome back" />
+                   <Topbar title="Recipient Dashboard" subtitle="Welcome back" />
                    <div className={mainStyles.content}>
                       <div className={mainStyles.topRow}>
                          <StreamInfo />

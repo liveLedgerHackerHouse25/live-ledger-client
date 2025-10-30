@@ -20,7 +20,7 @@ export default function Navbar(): React.ReactElement {
 
         <div className={styles.navLinks}>
           <a href="#contact" onClick={scrollToContact} className={styles.link}>Contact</a>
-          <button className={styles.linkBtn}>Sign up</button>
+          <Link href="/auth/signup" className={styles.linkBtnAlt}>Sign up</Link>
           <Link href="/auth/login" className={styles.linkBtnAlt}>Log in</Link>
         </div>
       </div>

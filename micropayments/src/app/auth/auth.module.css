@@ -1,0 +1,108 @@
+/* Minimal styles used by login/signup pages */
+
+.container {
+  max-width: 520px;
+  margin: 3rem auto;
+  padding: 1.25rem;
+  background: var(--card-bg, #fff);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(8, 15, 25, 0.04);
+  color: var(--text, #0f172a);
+}
+
+.title {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.lead {
+  margin: 0 0 18px 0;
+  color: var(--muted, #6b7280);
+  font-size: 0.95rem;
+}
+
+.loginForm {
+  display: block;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.labelText {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: var(--muted, #6b7280);
+}
+
+.input {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--border, #e6e9ef);
+  border-radius: 6px;
+  background: var(--input-bg, #fff);
+  color: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent, #3b82f6);
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.08);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.primary {
+  background: var(--primary, #0ea5a4);
+  color: #fff;
+  border: none;
+  padding: 9px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.ghost {
+  background: transparent;
+  border: 1px solid var(--border, #e6e9ef);
+  padding: 9px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.footerNote {
+  margin-top: 14px;
+  color: var(--muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+.link {
+  color: var(--accent, #3b82f6);
+  text-decoration: underline;
+}
+
+.error {
+  color: #b91c1c;
+  margin-top: 8px;
+  font-size: 0.95rem;
+}
+
+.success {
+  color: #065f46;
+  margin-top: 8px;
+  font-size: 0.95rem;
+}

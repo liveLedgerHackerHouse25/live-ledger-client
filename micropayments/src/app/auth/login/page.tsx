@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "./login.module.css";
+import styles from "../auth.module.css";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -16,7 +16,6 @@ export default function LoginPage() {
     try {
       // TODO: replace with real auth call
       console.log("Login attempt", { email, password });
-      // simulate
       await new Promise((r) => setTimeout(r, 600));
       // redirect or show success
     } finally {
@@ -69,7 +68,7 @@ export default function LoginPage() {
       </form>
 
       <p className={styles.footerNote}>
-        Don't have an account? <a href="/signup" className={styles.link}>Sign up</a>
+        Don't have an account? <a href="/auth/signup" className={styles.link}>Sign up</a>
       </p>
     </div>
   );

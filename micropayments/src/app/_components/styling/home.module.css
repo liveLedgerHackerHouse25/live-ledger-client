@@ -170,7 +170,7 @@
 .features {
   display: flex;
   gap: 3rem;
-  margin-top: 2rem;
+  margin-top: 6rem;
   flex-wrap: wrap;
 }
 .feature {
@@ -178,8 +178,13 @@
   padding: 1rem;
   background: rgba(255,255,255,0.02);
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.02);
+  border: 1px solid #055F59;
   height: 200px;
+  z-index: 500;
+  /* visible teal glow on black background */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6),
+              0 6px 18px rgba(19, 196, 169, 0.22),
+              0 0 36px rgba(19, 196, 169, 0.14);
 }
 
 /* FOOTER */
@@ -217,7 +222,7 @@
   flex-direction: column;
   margin: 1rem;
   width: 20rem;
-  left: 6rem;
+  left: 35rem;
 }
 
 .contactForm {

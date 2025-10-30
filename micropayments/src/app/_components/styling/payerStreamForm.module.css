@@ -1,0 +1,137 @@
+/* color tokens */
+:root {
+  --bg: #0b0f14;        /* unused, page background is dark in app */
+  --card: rgba(255,255,255,0.02);
+  --text: #e6eef0;
+  --muted: #9aa7bf;
+  --accent: #13C4A9;   /* matches home accent */
+  --input-bg: rgba(255,255,255,0.02);
+  --input-border: rgba(255,255,255,0.04);
+}
+
+/* light mode overrides */
+:root[data-theme="light"], :root.light {
+  --card: #ffffff;
+  --text: #0f1724;
+  --muted: #6b7280;
+  --input-bg: #fbfdff;
+  --input-border: #e6eefc;
+}
+
+/* container */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: transparent;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* header */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.heading {
+  margin: 0;
+  color: var(--accent);
+  font-size: 1.05rem;
+}
+.sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* form layout */
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+.col {
+  flex: 1 1 0;
+  min-width: 160px;
+}
+.colSmall {
+  flex: 0 0 140px;
+  min-width: 120px;
+}
+
+/* fields */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* inputs */
+.input, .textarea {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.input:focus, .textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 6px 18px rgba(19,196,169,0.06);
+}
+
+/* textarea */
+.textarea {
+  min-height: 64px;
+  resize: vertical;
+}
+
+/* error */
+.error {
+  color: #ffb4b4;
+  font-size: 13px;
+}
+
+/* actions */
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.primary[disabled] {
+  opacity: 0.7;
+  cursor: default;
+}
+.ghost {
+  background: transparent;
+  border: 1px solid var(--input-border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* responsive */
+@media (max-width: 720px) {
+  .row { flex-direction: column; }
+  .colSmall { min-width: auto; flex: 1 1 0; }
+}

@@ -28,9 +28,9 @@ export default function Home() {
             within a set daily limit.
           </p>
           <div className={styles.ctaRow}>
-            {/* Sign up kept as button (wire up later) */}
-            <button className={styles.primary}>Sign up</button>
-            {/* Log in links to the new auth login page */}
+            {/* Sign up links to signup page */}
+            <Link href="/auth/signup" className={styles.primary}>Sign up</Link>
+            {/* Log in links to the auth login page */}
             <Link href="/auth/login" className={styles.ghost}>
               Log in
             </Link>
