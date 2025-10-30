@@ -69,7 +69,7 @@ export default function Signup() {
     try {
       // 1) request nonce from backend
       const nonceResp = await api.getNonce({ walletAddress: account });
-      const message = `Sign this nonce to authenticate: ${nonceResp.nonce}`;
+      const message = `Welcome to LiveLedger!\n\nSign this message to authenticate your wallet.\n\nNonce: ${nonceResp.nonce}\n\nThis request will not trigger a blockchain transaction or cost any gas fees.`;
 
       // 2) Sign message using our Web3Context signer
       const signature = await signMessage(message);
@@ -98,9 +98,9 @@ export default function Signup() {
       // redirect: prefer payer dashboard when user can be payer, otherwise recipient
       setTimeout(() => {
         if (auth?.user?.userTypes?.includes("PAYER") || userTypes.includes("PAYER")) {
-          router.push("/payer");
+          router.push("/payer/dashboard");
         } else {
-          router.push("/recipient");
+          router.push("/recipient/dashboard");
         }
       }, 1500); // Show success message briefly before redirect
       

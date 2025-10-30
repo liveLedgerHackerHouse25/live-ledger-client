@@ -7,7 +7,7 @@ import WalletAside from "@/app/_components/ui/walletAside";
 import mainStyles from "@/app/_components/styling/mainContent.receipient.module.css";
 
 const receipientLinks = [
-    { label: "Dashboard", href: "/payer/dashboard" },
+    { label: "Dashboard", href: "/recipient/dashboard" },
     { label: "Statistics", href: "/statistics" },
     { label: "Wallet", href: "/wallet" },
     { label: "Account", href: "/"},
