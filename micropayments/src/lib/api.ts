@@ -182,10 +182,37 @@ const getRuntimeBaseUrl = () => {
     const serverUrl = process.env.API_BASE_URL || "";
     if (typeof window !== "undefined") {
       // client runtime
-      return (publicUrl && publicUrl.length > 0) ? publicUrl : (serverUrl && serverUrl.length > 0) ? serverUrl : "/api";
+      // - prefer client-exposed NEXT_PUBLIC_API_BASE_URL when set
+      // - ensure the returned client base ends with "/api" (avoid double slashes)
+      if (publicUrl && publicUrl.length > 0) {
+        try {
+          const u = new URL(publicUrl);
+          const normalizedPath = (u.pathname || "").replace(/\/+$/, "");
+          // if pathname is empty or "/", use origin + /api
+          if (!normalizedPath || normalizedPath === "") {
+            return u.origin + "/api";
+          }
+          // if already ends with /api, return full url without trailing slash
+          if (normalizedPath.endsWith("/api")) {
+            return u.origin + normalizedPath;
+          }
+          // otherwise append /api to the existing pathname
+          return u.origin + normalizedPath + "/api";
+        } catch {
+          // relative path (e.g. "/v1" or "/api") — normalize and ensure /api suffix
+          const rel = publicUrl.replace(/\/+$/, "");
+          return rel.endsWith("/api") ? rel : rel + "/api";
+        }
+      }
+      return "/api";
     } else {
-      // server runtime (SSR / node)
-      return (serverUrl && serverUrl.length > 0) ? serverUrl : (publicUrl && publicUrl.length > 0) ? publicUrl : "http://localhost:3000";
+      // server runtime (SSR / node):
+      // - prefer server-side API_BASE_URL, fallback to NEXT_PUBLIC_API_BASE_URL, then localhost
+      return serverUrl && serverUrl.length > 0
+        ? serverUrl
+        : publicUrl && publicUrl.length > 0
+        ? publicUrl
+        : "http://localhost:3000";
     }
   } catch {
     return "/api";
