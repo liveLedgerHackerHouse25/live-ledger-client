@@ -64,7 +64,7 @@ export class SmartContractService {
     let finalTotalAmount = totalAmountWei;
     
     // If there's a remainder, we need to adjust
-    if (remainder > 0n) {
+  if (remainder > BigInt(0)) {
       // Increase rate by 1 wei per second to cover the remainder
       finalRatePerSecond = ratePerSecondWei + BigInt(1);
       finalTotalAmount = finalRatePerSecond * duration;
