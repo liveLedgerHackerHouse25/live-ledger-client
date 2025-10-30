@@ -8,8 +8,8 @@ import { api } from "@/lib/api";
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  // allow multiple roles
-  const [userTypes, setUserTypes] = useState<("PAYER" | "RECIPIENT")[]>(["PAYER"]);
+  // single role now: either "PAYER" or "RECIPIENT"
+  const [userType, setUserType] = useState<"PAYER" | "RECIPIENT">("PAYER");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -38,12 +38,9 @@ export default function Signup() {
   const validateEmail = (e: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
-  // Helper to toggle a role in the array
-  const toggleRole = (role: "PAYER" | "RECIPIENT") => {
-    setUserTypes((prev) => {
-      if (prev.includes(role)) return prev.filter((r) => r !== role);
-      return [...prev, role];
-    });
+  // Set single selected role
+  const selectRole = (role: "PAYER" | "RECIPIENT") => {
+    setUserType(role);
   };
 
   const signMessage = async (message: string): Promise<string> => {
@@ -62,8 +59,8 @@ export default function Signup() {
     if (!validateEmail(email)) return setError("Enter a valid email address.");
     if (!isConnected || !account) return setError("Please connect your wallet first.");
 
-    // require at least one role
-    if (!userTypes || userTypes.length === 0) return setError("Please select at least one role.");
+    // require a role
+    if (!userType) return setError("Please select a role.");
 
     setLoading(true);
     try {
@@ -74,12 +71,12 @@ export default function Signup() {
       // 2) Sign message using our Web3Context signer
       const signature = await signMessage(message);
 
-      // 3) send wallet auth to backend (include userTypes, name, email)
+      // 3) send wallet auth to backend (include userType, name, email)
       const auth = await api.walletAuth({
          walletAddress: account,
          signature,
          nonce: nonceResp.nonce,
-         userTypes,
+         userType,
          name,
          email,
        });
@@ -93,11 +90,16 @@ export default function Signup() {
       // reset local fields if desired
       setName("");
       setEmail("");
-      setUserTypes(["PAYER"]);
+      setUserType("PAYER");
       
       // redirect: prefer payer dashboard when user can be payer, otherwise recipient
       setTimeout(() => {
-        if (auth?.user?.userTypes?.includes("PAYER") || userTypes.includes("PAYER")) {
+
+        const isPayer =
+          auth?.user?.userType === "PAYER" ||
+          auth?.user?.userType?.includes?.("PAYER") ||
+          userType === "PAYER";
+        if (isPayer) {
           router.push("/payer/dashboard");
         } else {
           router.push("/recipient/dashboard");
@@ -145,21 +147,17 @@ export default function Signup() {
         </label>
 
         <label className={styles.formLabel}>
-          <span className={styles.labelText}>Roles (you can select both)</span>
+          <span className={styles.labelText}>Select role</span>
           <div style={{ display: "flex", gap: 12, marginTop: 6 }}>
             <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={userTypes.includes("PAYER")}
-                onChange={() => toggleRole("PAYER")}
+              <input type="radio" name="userType" value="PAYER" checked={userType === "PAYER"}
+                onChange={() => selectRole("PAYER")}
               />
               <span style={{ fontSize: 13 }}>Payer</span>
             </label>
             <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={userTypes.includes("RECIPIENT")}
-                onChange={() => toggleRole("RECIPIENT")}
+              <input type="radio" name="userType" value="RECIPIENT" checked={userType === "RECIPIENT"}
+                onChange={() => selectRole("RECIPIENT")}
               />
               <span style={{ fontSize: 13 }}>Recipient</span>
             </label>

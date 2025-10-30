@@ -14,9 +14,9 @@ export interface IWalletAuthRequest {
   signature: string;
   nonce: string;
   // allow sending multiple roles so a user can be both payer and recipient
-  userTypes?: UserType[];
-  name?: string;
-  email?: string;
+  userType: UserType;
+  name: string;
+  email: string;
 }
 
 export interface IWalletAuthResponse {
@@ -25,10 +25,10 @@ export interface IWalletAuthResponse {
   user: {
     id: string;
     walletAddress: string;
-    email?: string;
-    name?: string;
+    email: string;
+    name: string;
     // backend may return stored roles as an array
-    userTypes?: UserType[];
+    userType: UserType;
   };
 }
 

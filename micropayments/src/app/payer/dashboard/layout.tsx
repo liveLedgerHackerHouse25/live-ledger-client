@@ -7,6 +7,7 @@ import mainStyles from "@/app/_components/styling/mainContent.module.css"
 import PayerStreamForm from "@/app/_components/ui/payerStreamForm";
 import StreamReceipt from "@/app/_components/ui/streamReceipt";
 import type { StreamPayload } from "@/app/_components/ui/payerStreamForm";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const payerLinks = [
     { label: "Dashboard", href: "/payer/dashboard" },
@@ -24,6 +25,7 @@ export default function DashboardLayout({children} : {
     const [showForm, setShowForm] = useState(false);
 
     return (
+      <ProtectedRoute>
       <div style={{ display: "flex", minHeight: "100vh" }}>
         <Sidebar links={payerLinks}/>
         <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
@@ -86,5 +88,6 @@ export default function DashboardLayout({children} : {
           <WalletAside />
         </main>
       </div>
+      </ProtectedRoute>
     )
 }

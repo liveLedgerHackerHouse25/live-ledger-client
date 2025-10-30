@@ -45,6 +45,7 @@ export default function Navbar(): React.ReactElement {
           {!isConnected ? (
             <>
               <Link href="/auth/signup" className={styles.linkBtnAlt}>Sign up</Link>
+              <Link href="/auth/login" className={styles.linkBtnAlt}>Login</Link>
               <button 
                 onClick={handleConnectWallet} 
                 disabled={isConnecting}
