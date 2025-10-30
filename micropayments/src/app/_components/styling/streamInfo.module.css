@@ -6,9 +6,10 @@
   border-radius: 12px;
   /* light-mode card: slightly translucent white so it reads on both purple wave and white background */
   background: rgba(255,255,255,0.92);
-  /* subtle, low-contrast border and drop shadow so the card edge is visible on white */
   border: 1px solid rgba(16,24,40,0.06);
-  box-shadow: 0 8px 20px rgba(16,24,40,0.06);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6),
+              0 6px 18px rgba(19, 196, 169, 0.22),
+              0 0 36px rgba(19, 196, 169, 0.14);
   color: var(--text);
   box-sizing: border-box;
   min-width: 0;

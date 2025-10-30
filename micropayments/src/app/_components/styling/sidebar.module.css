@@ -28,24 +28,23 @@
     padding: 0 0.6rem;
     box-sizing: border-box;
 }
+/* make the logo slightly bigger */
 .logoIcon {
-    width: 9rem;
-    height: 2.25rem;
+    width: 14rem;
+    height: 6rem;
     border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     font-weight: 700;
-    color: #fff;
-    background: linear-gradient(135deg,#13C4A9,#0ea5a4); /* fallback/edge color */
+    color: inherit;
+    background: transparent; /* removed gradient so image isn't encased in green */
     flex: 0 0 auto;
     overflow: hidden;
+    padding: 0;
 }
-/* new: image styling (Next Image will render an img) */
+/* new: ensure the rendered image fills the larger container */
 .logoImg {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
     border-radius: 6px;
 }
@@ -203,4 +202,12 @@
 :global(html[data-theme="dark"]) {
   --sidebar-link-color: var(--text);
   --sidebar-hover: rgba(255,255,255,0.06); /* visible in dark mode */
+}
+
+/* ensure logo becomes black in light mode (works for raster or simple SVGs) */
+:global(html[data-theme="light"]) .logoIcon .logoImg {
+  /* make image render as black: reduce color to pure black via brightness(0) and preserve contrast */
+  filter: brightness(0) saturate(100%) contrast(100%);
+  /* ensure any background remains transparent */
+  background: transparent;
 }
