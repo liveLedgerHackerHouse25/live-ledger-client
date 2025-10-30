@@ -120,7 +120,7 @@ export class ApiClient {
     const refresh = this.refreshToken;
     if (!refresh) return false;
     try {
-      const res = await fetch(this.baseUrl + "/auth/refresh", {
+      const res = await fetch(this.baseUrl + "/users/refresh-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken: refresh }),
@@ -161,7 +161,7 @@ export class ApiClient {
   async refreshTokens(): Promise<IWalletAuthResponse> {
     const refresh = this.refreshToken;
     if (!refresh) throw new Error("No refresh token");
-    const res = await fetch(this.baseUrl + "/auth/refresh", {
+    const res = await fetch(this.baseUrl + "/users/refresh-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken: refresh }),
