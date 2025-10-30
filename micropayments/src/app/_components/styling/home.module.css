@@ -72,11 +72,40 @@
   padding: 2.5rem 1rem;
 }
 .hero {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem 0;
-  min-height: 60vh; /* tall hero to emphasize demo video */
+  padding: 4rem 1rem; /* slightly more vertical space */
+  min-height: 44vh;   /* a touch taller */
+  box-sizing: border-box;
+  overflow: visible; /* allow background to extend outside the container */
+}
+
+/* background wrapper — absolutely fill the hero but extend wider and stay centered */
+.heroBg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+  width: 100%;
+  max-width: 1300px;
+  height: calc(90% + 3rem);
+
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* slight overlay to improve contrast */
+.heroBgOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(3,37,36,0.25) 0%, rgba(3,37,36,0.45) 100%);
+  border-radius: inherit;
 }
 .heroInner {
   display: flex;
@@ -132,37 +161,36 @@
   align-items: center;
   justify-content: center;
 }
+/* ensure the placeholder sits above the background/overlay and is wider */
 .videoPlaceholder {
-  width: 86%;
-  max-width: 980px;
-  height: 56vh;
-  max-height: 640px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(41,41,56,0.06));
-  border: 1px solid rgba(255,255,255,0.03);
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  color: #e6eef0;
+  width: min(80%, 1000px); /* extended max width */
+  height: min(60vw, 560px); /* extended height cap */
+  max-height: 640px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 12px; /* match heroBg rounding visually */
+  box-shadow: 0 10px 48px rgba(2,8,12,0.18);
+  color: var(--text, #fff);
 }
 .playIcon {
-  font-size: 4rem;
-  color: #13C4A9;
-  opacity: 0.95;
+  font-size: 36px;
+  margin-right: 12px;
 }
 .videoLabel {
-  position: absolute;
-  bottom: 10px;
-  font-size: 0.85rem;
-  color: rgba(230,238,240,0.7);
+  font-size: 14px;
+  opacity: 0.9;
+  color: rgba(255,255,255,0.95);
 }
 
 /* WRITEUP: brand/title and description centered under hero */
 .writeup {
   text-align: center;
   max-width: 900px;
-  margin: 2rem auto;
+  margin: 4rem auto;
   padding: 0 1rem;
 }
 

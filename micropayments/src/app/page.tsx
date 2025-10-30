@@ -12,6 +12,18 @@ export default function Home() {
       <main className={styles.main}>
         {/* HERO: centered demo video only */}
         <section className={styles.hero}>
+          {/* background image behind the hero content */}
+          <div className={styles.heroBg} aria-hidden="true">
+            <Image
+              src="/background.png"
+              alt="Decorative background"
+              fill
+              style={{ objectFit: "cover" }}
+              priority
+            />
+            <div className={styles.heroBgOverlay} />
+          </div>
+
           <div className={styles.videoPlaceholder} role="img" aria-label="Demo video placeholder">
             <div className={styles.playIcon}>▶</div>
             <div className={styles.videoLabel}>Demo video placeholder</div>
