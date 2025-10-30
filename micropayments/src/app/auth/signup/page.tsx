@@ -1,8 +1,8 @@
 "use client"
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "../auth.module.css";
 import { useRouter } from "next/navigation";
-import { ethers } from "ethers";
+import { useWallet } from "@/contexts/Web3Context";
 import { api } from "@/lib/api";
 
 export default function Signup() {
@@ -10,73 +10,47 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   // allow multiple roles
   const [userTypes, setUserTypes] = useState<("PAYER" | "RECIPIENT")[]>(["PAYER"]);
-  const [walletAddress, setWalletAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
   
-  // helper to shorten address for UI
+  // Use our Web3Context
+  const { 
+    isConnected, 
+    isConnecting, 
+    account, 
+    connectWallet, 
+    error: walletError,
+    clearError,
+    signer
+  } = useWallet();
+
+  // Clear wallet errors when component mounts
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
+
+  // Helper to shorten address for UI
   const short = (addr: string) =>
     addr ? addr.slice(0, 6) + "…" + addr.slice(-4) : "";
 
   const validateEmail = (e: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
-  // connect to MetaMask (ethers.js) — robust for ethers v5 (Web3Provider) and v6 (BrowserProvider)
-  const connectWallet = async () => {
-    setError(null);
-    try {
-      const anyWin = window as any;
-      if (!anyWin?.ethereum) {
-        // redirect user to MetaMask install/create page
-        window.location.assign("https://metamask.io/download.html");
-        return;
-      }
-
-      // first, prompt MetaMask to request accounts (broad compatibility)
-      if (typeof anyWin.ethereum.request === "function") {
-        await anyWin.ethereum.request({ method: "eth_requestAccounts" });
-      } else if (typeof anyWin.ethereum.enable === "function") {
-        await anyWin.ethereum.enable();
-      }
-
-      // support either ethers v5 or v6 provider constructors
-      const ethersAny = (ethers as any);
-      let provider: any | undefined;
-
-      if (ethersAny.providers && ethersAny.providers.Web3Provider) {
-        // ethers v5 style
-        provider = new ethersAny.providers.Web3Provider(anyWin.ethereum);
-      } else if (ethersAny.BrowserProvider) {
-        // ethers v6 style
-        provider = new ethersAny.BrowserProvider(anyWin.ethereum);
-      } else if (ethersAny.providers?.Web3Provider) {
-        // fallback defensive check
-        provider = new ethersAny.providers.Web3Provider(anyWin.ethereum);
-      } else {
-        throw new Error("No compatible ethers Provider found");
-      }
-
-      // get signer and address — both provider types expose getSigner()
-      const signer = provider.getSigner ? provider.getSigner() : undefined;
-      if (!signer || typeof signer.getAddress !== "function") {
-        throw new Error("Provider does not expose a signer");
-      }
-      const addr = await signer.getAddress();
-      setWalletAddress(addr);
-    } catch (err) {
-      console.error("connectWallet error", err);
-      setError("Failed to connect wallet. Make sure MetaMask is installed, unlocked and try again.");
-    }
-  };
-
-  // helper to toggle a role in the array
+  // Helper to toggle a role in the array
   const toggleRole = (role: "PAYER" | "RECIPIENT") => {
     setUserTypes((prev) => {
       if (prev.includes(role)) return prev.filter((r) => r !== role);
       return [...prev, role];
     });
+  };
+
+  const signMessage = async (message: string): Promise<string> => {
+    if (!signer) {
+      throw new Error("No signer available");
+    }
+    return await signer.signMessage(message);
   };
 
   const onSubmit = async (ev: React.FormEvent) => {
@@ -86,7 +60,7 @@ export default function Signup() {
 
     if (!name.trim()) return setError("Name is required.");
     if (!validateEmail(email)) return setError("Enter a valid email address.");
-    if (!walletAddress || !walletAddress.trim()) return setError("Please connect your wallet.");
+    if (!isConnected || !account) return setError("Please connect your wallet first.");
 
     // require at least one role
     if (!userTypes || userTypes.length === 0) return setError("Please select at least one role.");
@@ -94,25 +68,15 @@ export default function Signup() {
     setLoading(true);
     try {
       // 1) request nonce from backend
-      const nonceResp = await api.getNonce({ walletAddress });
+      const nonceResp = await api.getNonce({ walletAddress: account });
       const message = `Sign this nonce to authenticate: ${nonceResp.nonce}`;
 
-      // 2) request signature from injected provider (MetaMask)
-      const anyWin = window as any;
-      if (!anyWin?.ethereum) {
-        window.location.assign("https://metamask.io/download.html");
-        return;
-      }
-
-      // personal_sign: params [message, address]
-      const signature = await anyWin.ethereum.request({
-        method: "personal_sign",
-        params: [message, walletAddress],
-      });
+      // 2) Sign message using our Web3Context signer
+      const signature = await signMessage(message);
 
       // 3) send wallet auth to backend (include userTypes, name, email)
       const auth = await api.walletAuth({
-         walletAddress,
+         walletAddress: account,
          signature,
          nonce: nonceResp.nonce,
          userTypes,
@@ -124,21 +88,26 @@ export default function Signup() {
       const me = await api.request("/auth/me");
       console.log("Authenticated user:", me);
 
-      setSuccess("Account created and authenticated.");
-      // reset local fields if desired (but tokens persist in api client)
+      setSuccess("Account created and authenticated successfully!");
+      
+      // reset local fields if desired
       setName("");
       setEmail("");
-      setWalletAddress("");
       setUserTypes(["PAYER"]);
+      
       // redirect: prefer payer dashboard when user can be payer, otherwise recipient
-      if (auth?.user?.userTypes?.includes("PAYER") || userTypes.includes("PAYER")) {
-        router.push("/payer/dashboard");
-      } else {
-        router.push("/recipient/dashboard");
-      }
-    } catch (err: any) {
+      setTimeout(() => {
+        if (auth?.user?.userTypes?.includes("PAYER") || userTypes.includes("PAYER")) {
+          router.push("/payer");
+        } else {
+          router.push("/recipient");
+        }
+      }, 1500); // Show success message briefly before redirect
+      
+    } catch (err: unknown) {
       console.error("Signup error:", err);
-      setError(err?.message ? String(err.message) : "Failed to sign up — try again.");
+      const errorMessage = err instanceof Error ? err.message : "Failed to sign up — try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -197,42 +166,82 @@ export default function Signup() {
           </div>
         </label>
 
-        {/* Wallet connect: replace manual input with connect flow */}
-        <div
-          className={styles.formLabel}
-          style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-        >
-          <div style={{ textAlign: "center" }}>
-            <div className={styles.labelText}>Wallet</div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "center", marginTop: 6 }}>
+        {/* Wallet connection section */}
+        <div className={styles.formLabel}>
+          <span className={styles.labelText}>Wallet Connection</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 6 }}>
+            {!isConnected ? (
               <button
                 type="button"
                 onClick={connectWallet}
                 className={styles.primary}
-                style={{ padding: "8px 12px" }}
+                disabled={isConnecting}
+                style={{ padding: "12px 16px" }}
               >
-                {walletAddress ? "Connected" : "Connect wallet"}
+                {isConnecting ? "Connecting..." : "Connect Wallet"}
               </button>
-              <div style={{ fontSize: 13, color: "var(--muted, #6b7280)", minWidth: 140 }}>
-                {walletAddress ? short(walletAddress) : "No wallet connected"}
+            ) : (
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "space-between",
+                padding: "12px 16px",
+                backgroundColor: "var(--success-bg, #f0f9ff)",
+                border: "1px solid var(--success-border, #0ea5e9)",
+                borderRadius: "6px"
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ 
+                    width: 8, 
+                    height: 8, 
+                    borderRadius: "50%", 
+                    backgroundColor: "var(--success, #10b981)" 
+                  }} />
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>
+                    Connected: {short(account || "")}
+                  </span>
+                </div>
+                <span style={{ fontSize: 12, color: "var(--muted, #6b7280)" }}>
+                  ✓ Ready to sign up
+                </span>
               </div>
-            </div>
+            )}
+            {walletError && (
+              <div style={{ 
+                fontSize: 13, 
+                color: "var(--error, #ef4444)", 
+                padding: "8px 12px",
+                backgroundColor: "var(--error-bg, #fef2f2)",
+                border: "1px solid var(--error-border, #fecaca)",
+                borderRadius: "4px"
+              }}>
+                {walletError}
+              </div>
+            )}
           </div>
         </div>
 
-        {error && <div className={styles.error}>{error}</div>}
+        {(error || walletError) && (
+          <div className={styles.error}>
+            {error || walletError}
+          </div>
+        )}
         {success && <div className={styles.success}>{success}</div>}
 
         <div className={styles.actions}>
-          <button type="submit" className={styles.primary} disabled={loading}>
-            {loading ? "Signing up..." : "Sign up"}
+          <button 
+            type="submit" 
+            className={styles.primary} 
+            disabled={loading || !isConnected || isConnecting}
+          >
+            {loading ? "Creating Account..." : isConnected ? "Sign Up" : "Connect Wallet First"}
           </button>
           <button
             type="button"
             className={styles.ghost}
             onClick={() => router.push("/auth/login")}
           >
-            Back
+            Back to Login
           </button>
         </div>
       </form>
