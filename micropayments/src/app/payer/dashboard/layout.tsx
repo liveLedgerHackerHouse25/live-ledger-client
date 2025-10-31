@@ -12,9 +12,9 @@ import { api } from "@/lib/api";
 
 export const payerLinks = [
     { label: "Dashboard", href: "/payer/dashboard" },
-    { label: "Analytics", href: "/analytics" },
+  { label: "Analytics", href: "/payer/analytics" },
     { label: "Wallet", href: "/wallet" },
-    { label: "Account", href: "/account"},
+    { label: "Account", href: "/payer/account"},
     { label: "Settings", href: "/"}
 ];
 

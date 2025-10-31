@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import styles from "@/app/_components/styling/mainContent.module.css";
 import { useWallet } from "@/contexts/Web3Context";
 import { api } from "@/lib/api";
 

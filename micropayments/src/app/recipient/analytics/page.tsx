@@ -1,12 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import styles from "@/app/_components/styling/mainContent.module.css";
-import { useWallet } from "@/contexts/Web3Context";
 import { api } from "@/lib/api";
+import { useWallet } from "@/contexts/Web3Context";
 
-export default function AnalyticsPage(): React.ReactElement {
-  const router = useRouter();
+export default function RecipientAnalyticsPage(): React.ReactElement {
   const { isConnected } = useWallet();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,20 +17,18 @@ export default function AnalyticsPage(): React.ReactElement {
       setLoading(true);
       setError(null);
       try {
-        // Try to mount auth user first — analytics requires an authenticated user
+        // Require authenticated user for analytics
         let me: any = null;
         try {
           me = await api.get('/auth/me');
         } catch (e) {
-          // If /auth/me fails, treat as unauthenticated and abort analytics load
-          console.debug('[analytics] /auth/me failed', e);
+          console.debug('[recipient analytics] /auth/me failed', e);
         }
 
         if (!mounted) return;
         const mountedUser = me?.data?.user ?? me?.user ?? me ?? null;
         setUser(mountedUser);
 
-        // If there's no authenticated user, surface an error and don't fetch analytics
         if (!mountedUser) {
           if (mounted) {
             setError('Authentication required to view analytics. Please log in.');
@@ -41,9 +37,8 @@ export default function AnalyticsPage(): React.ReactElement {
           return;
         }
 
-        // Fetch analytics; ApiClient unwraps { success, data } envelopes so we handle both shapes
         const res: any = await api.getActiveStreamsAnalytics();
-  const payload = res?.data ?? res ?? {};
+        const payload = res?.data ?? res ?? {};
         if (!mounted) return;
         setData({
           activeStreams: typeof payload.activeStreams === 'number' ? payload.activeStreams : Number(payload.activeStreams) || 0,
@@ -52,7 +47,7 @@ export default function AnalyticsPage(): React.ReactElement {
           withdrawalStats: payload.withdrawalStats ?? payload.stats ?? {}
         });
       } catch (err: any) {
-        console.error('[analytics] failed to load analytics:', err);
+        console.error('[recipient analytics] failed to load analytics:', err);
         if (mounted) setError(err?.message ?? String(err));
       } finally {
         if (mounted) setLoading(false);
@@ -65,8 +60,8 @@ export default function AnalyticsPage(): React.ReactElement {
   return (
     <div className={styles.content}>
       <div style={{ padding: '1.5rem', maxWidth: 980, margin: '0 auto' }}>
-        <h1 style={{ margin: 0, color: 'var(--text)' }}>Analytics</h1>
-        <p style={{ color: 'var(--muted)' }}>Overview of active streams and volumes</p>
+        <h1 style={{ margin: 0, color: 'var(--text)' }}>Analytics — Recipient</h1>
+        <p style={{ color: 'var(--muted)' }}>Recipient-specific analytics</p>
 
         {loading ? (
           <div style={{ marginTop: 24, padding: 20, background: 'var(--card-bg)', borderRadius: 12 }}>
@@ -101,13 +96,7 @@ export default function AnalyticsPage(): React.ReactElement {
                   <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>{String(data.withdrawalStats?.totalWithdrawals ?? 0)}</div>
                 </div>
 
-                {/* Show Unique Recipients only when the authenticated user is a PAYER */}
-                {user && (String(user.type || user.userType || user.role || '').toUpperCase() === 'PAYER') && (
-                  <div style={{ padding: 12, borderRadius: 8, background: 'rgba(255,255,255,0.02)' }}>
-                    <div style={{ fontSize: 12, color: 'var(--muted)' }}>Unique Recipients</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>{String(data.withdrawalStats?.uniqueRecipients ?? 0)}</div>
-                  </div>
-                )}
+                {/* Recipient view: do NOT show Unique Recipients */}
 
                 <div style={{ padding: 12, borderRadius: 8, background: 'rgba(255,255,255,0.02)' }}>
                   <div style={{ fontSize: 12, color: 'var(--muted)' }}>Avg Withdrawals / Recipient</div>

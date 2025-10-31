@@ -251,7 +251,7 @@ export default function LoginPage() {
             className={styles.primary}
             disabled={loading || !isConnected || isConnecting}
           >
-            {loading ? "Logging in" : isConnected ? "Login in" : "Connect Wallet First"}
+            {loading ? "Logging in" : isConnected ? "Login" : "Connect Wallet First"}
           </button>
           <button
             type="button"

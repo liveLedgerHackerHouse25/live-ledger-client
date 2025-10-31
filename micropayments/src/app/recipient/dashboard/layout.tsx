@@ -10,9 +10,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 export const recipientLinks = [
     { label: "Dashboard", href: "/recipient/dashboard" },
-    { label: "Analytics", href: "/analytics" },
+    { label: "Analytics", href: "/recipient/analytics" },
     { label: "Wallet", href: "/wallet" },
-    { label: "Account", href: "/account"},
+    { label: "Account", href: "/recipient/account"},
     { label: "Settings", href: "/"}
 ];
 
