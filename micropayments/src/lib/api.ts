@@ -202,8 +202,34 @@ export class ApiClient {
       if (ok) return this.request<T>(path, opts, false);
     }
     if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text || res.statusText || `Request failed: ${res.status}`);
+      // Try to parse a JSON error body first for better messages
+      let bodyText = "";
+      try {
+        const txt = await res.text();
+        bodyText = txt || "";
+        // If JSON, try parse to extract message
+        try {
+          const parsed = JSON.parse(bodyText);
+          // Common shapes: { error: { message } } or { message }
+          if (parsed && typeof parsed === "object") {
+            if (parsed.error && parsed.error.message) {
+              bodyText = String(parsed.error.message);
+            } else if (parsed.message) {
+              bodyText = String(parsed.message);
+            } else {
+              bodyText = JSON.stringify(parsed);
+            }
+          }
+        } catch {
+          // not JSON, keep raw text
+        }
+      } catch {
+        bodyText = res.statusText || "";
+      }
+
+      const err = new Error(bodyText || res.statusText || `Request failed: ${res.status}`);
+      try { (err as any).status = res.status; } catch {}
+      throw err;
     }
 
     // parse JSON and unwrap common envelope { success: boolean, data: ... }
@@ -338,6 +364,97 @@ export class ApiClient {
   async getUserBalance(tokenAddress?: string): Promise<UserBalance> {
     const params = tokenAddress ? `?tokenAddress=${tokenAddress}` : "";
     return this.request<UserBalance>(`/users/balance${params}`);
+  }
+
+  // Dashboard & analytics helpers
+  async getPayerDashboard(address: string): Promise<any> {
+    return this.request(`/dashboard/payer/${address}`);
+  }
+
+  async getRecipientDashboard(address: string): Promise<any> {
+    return this.request(`/dashboard/recipient/${address}`);
+  }
+
+  async getActiveStreamsAnalytics(): Promise<any> {
+    const candidates = [
+      `/analytics/streams/active`,
+      `/dashboard/analytics/streams/active`,
+      `/analytics/streams`,
+      `/dashboard/analytics/streams`
+    ];
+    let lastErr: any = null;
+    for (const p of candidates) {
+      try {
+        return await this.request(p);
+      } catch (e: any) {
+        lastErr = e;
+        const msg = (e && e.message) ? String(e.message).toLowerCase() : "";
+        // try next candidate only if it's a 404 / not found
+        if (!msg.includes('not found') && !(e && (e.status === 404 || String(e.status) === '404'))) {
+          break; // non-404 error - surface immediately
+        }
+      }
+    }
+    throw lastErr;
+  }
+
+  async getDailyVolumeAnalytics(): Promise<any> {
+    const candidates = [`/analytics/volume/daily`, `/dashboard/analytics/volume/daily`, `/analytics/volume`, `/dashboard/analytics/volume`];
+    let lastErr: any = null;
+    for (const p of candidates) {
+      try {
+        return await this.request(p);
+      } catch (e: any) {
+        lastErr = e;
+        const msg = (e && e.message) ? String(e.message).toLowerCase() : "";
+        if (!msg.includes('not found') && !(e && (e.status === 404 || String(e.status) === '404'))) {
+          break;
+        }
+      }
+    }
+    throw lastErr;
+  }
+
+  async getCompletionAlerts(): Promise<any> {
+    return this.request(`/dashboard/alerts/completions`);
+  }
+
+  async getWithdrawalAlerts(): Promise<any> {
+    return this.request(`/dashboard/alerts/withdrawals`);
+  }
+
+  async getStreamsBalances(streamIds: string[]): Promise<any> {
+    const ids = streamIds.join(',');
+    return this.request(`/dashboard/streams/${ids}/balances`);
+  }
+
+  async getStreamClaimable(streamId: string): Promise<{ claimable: string }> {
+    return this.request(`/streams/${streamId}/claimable`);
+  }
+
+  // User/profile helpers
+  async getProfile(): Promise<any> {
+    return this.request(`/users/profile`);
+  }
+
+  async updateProfile(body: unknown): Promise<any> {
+    return this.request(`/users/profile`, { method: 'PUT', body: JSON.stringify(body) });
+  }
+
+  async getAuthMe(): Promise<any> {
+    return this.request(`/auth/me`);
+  }
+
+  async getUserStats(): Promise<any> {
+    return this.request(`/users/stats`);
+  }
+
+  async generateRefreshToken(): Promise<{ refreshToken: string }> {
+    return this.request(`/users/generate-refresh-token`, { method: 'POST' });
+  }
+
+  async health(): Promise<any> {
+    return this.request(`/health`, { method: 'GET' });
   }
 
   // WebSocket connection management

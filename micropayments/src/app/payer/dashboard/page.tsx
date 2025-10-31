@@ -47,10 +47,10 @@ export default function PayerDashboard(): React.ReactElement {
           throw new Error("No wallet address available to load payer dashboard");
         }
 
-        // Fetch payer dashboard data
-        const res: any = await api.get(`/dashboard/payer/${addr}`);
-        // api.request already unwraps common envelopes; handle both wrapped and raw shapes
-        const payload = res?.data ?? res;
+  // Fetch payer dashboard data using ApiClient helper
+  const res: any = await api.getPayerDashboard(addr);
+  // api.request already unwraps common envelopes; handle both wrapped and raw shapes
+  const payload = res?.data ?? res;
 
         const streamsFromApi: any[] = payload?.activeStreams ?? payload?.active_streams ?? [];
         const totalStreamedStr: string | undefined = payload?.totalStreamed ?? payload?.total_streamed ?? payload?.totalStreamed;
