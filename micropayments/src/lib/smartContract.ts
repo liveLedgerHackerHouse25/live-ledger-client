@@ -64,7 +64,7 @@ export class SmartContractService {
     let finalTotalAmount = totalAmountWei;
     
     // If there's a remainder, we need to adjust
-    if (remainder > 0n) {
+    if (remainder > BigInt(0)) {
       // Increase rate by 1 wei per second to cover the remainder
       finalRatePerSecond = ratePerSecondWei + BigInt(1);
       finalTotalAmount = finalRatePerSecond * duration;
@@ -186,10 +186,28 @@ export class SmartContractService {
       throw new Error('USDC contract not initialized');
     }
 
-    const targetAddress = address || await this.signer.getAddress();
-    const balance = await this.usdcContract.balanceOf(targetAddress);
-    
-    return formatUnits(balance, 6);
+    try {
+      const targetAddress = address || await this.signer.getAddress();
+      console.log('Checking USDC balance for address:', targetAddress);
+      console.log('USDC contract address:', CONTRACT_ADDRESSES.MOCK_USDC);
+      
+      // First check if the contract exists by calling a simple view function
+      try {
+        const decimals = await this.usdcContract.decimals();
+        console.log('USDC contract decimals:', decimals);
+      } catch (error) {
+        console.error('Failed to get USDC decimals - contract may not be deployed:', error);
+        throw new Error('USDC contract not found or not deployed properly');
+      }
+      
+      const balance = await this.usdcContract.balanceOf(targetAddress);
+      console.log('Raw USDC balance:', balance.toString());
+      
+      return formatUnits(balance, 6);
+    } catch (error) {
+      console.error('Error getting USDC balance:', error);
+      throw error;
+    }
   }
 
   async getStreamDetails(streamId: number) {
@@ -221,26 +239,43 @@ export class SmartContractService {
       throw new Error('LiveLedger contract not initialized');
     }
 
-    // Since the contract doesn't have getStreamsByPayer/getStreamsByRecipient functions,
-    // we need to get the total stream count and check each stream individually
-    const streamCount = await this.liveLedgerContract.getStreamCount();
-    const targetAddress = address || await this.signer.getAddress();
-    const userStreams: number[] = [];
+    try {
+      const targetAddress = address || await this.signer.getAddress();
+      console.log('Getting streams for address:', targetAddress);
+      console.log('LiveLedger contract address:', CONTRACT_ADDRESSES.LIVE_LEDGER);
 
-    for (let i = 0; i < Number(streamCount); i++) {
-      try {
-        const streamData = await this.liveLedgerContract.getStream(i);
-        if (streamData.payer.toLowerCase() === targetAddress.toLowerCase() || 
-            streamData.recipient.toLowerCase() === targetAddress.toLowerCase()) {
-          userStreams.push(i);
+      // Since the contract doesn't have getStreamsByPayer/getStreamsByRecipient functions,
+      // we need to get the total stream count and check each stream individually
+      const streamCount = await this.liveLedgerContract.getStreamCount();
+      console.log('Total stream count:', streamCount.toString());
+      
+      const userStreams: number[] = [];
+
+      for (let i = 0; i < Number(streamCount); i++) {
+        try {
+          const streamData = await this.liveLedgerContract.getStream(i);
+          if (streamData.payer.toLowerCase() === targetAddress.toLowerCase() || 
+              streamData.recipient.toLowerCase() === targetAddress.toLowerCase()) {
+            userStreams.push(i);
+            console.log(`Found stream ${i} for user:`, {
+              payer: streamData.payer,
+              recipient: streamData.recipient,
+              totalAmount: formatUnits(streamData.totalAmount, 6),
+              active: streamData.active
+            });
+          }
+        } catch (error) {
+          console.warn(`Error checking stream ${i}:`, error);
+          // Continue checking other streams
         }
-      } catch {
-        // Stream might not exist, skip
-        console.log(`Stream ${i} not found, skipping`);
       }
+
+      console.log('User streams found:', userStreams);
+      return userStreams;
+    } catch (error) {
+      console.error('Error getting user streams:', error);
+      throw error;
     }
-    
-    return userStreams;
   }
 
   async withdrawFromStream(streamId: number): Promise<string> {

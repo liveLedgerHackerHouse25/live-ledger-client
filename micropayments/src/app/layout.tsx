@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Web3Provider } from "@/contexts/Web3Context";
+import { AuthProvider } from "@/contexts/AuthContext";
 import WalletAside from "@/app/_components/ui/walletAside";
 import "./globals.css";
 
@@ -28,8 +29,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Web3Provider>
-          {children}
-          <WalletAside />
+          <AuthProvider>
+            {children}
+            <WalletAside />
+          </AuthProvider>
         </Web3Provider>
       </body>
     </html>

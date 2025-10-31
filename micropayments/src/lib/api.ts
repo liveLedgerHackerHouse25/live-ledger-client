@@ -118,6 +118,7 @@ export interface CreateStreamResponse {
 
 export interface WithdrawalRequest {
   streamId: string;
+  amount: string;
 }
 
 export interface WithdrawalResponse {
@@ -174,6 +175,11 @@ export class ApiClient {
       this.storing.removeItem(TOKEN_KEY);
       this.storing.removeItem(REFRESH_KEY);
     } catch { /* noop */ }
+  }
+
+  // Check if user is authenticated
+  isAuthenticated(): boolean {
+    return this.token !== null;
   }
 
   async request<T = unknown>(path: string, opts: RequestInit = {}, retryOn401 = true): Promise<T> {
@@ -300,8 +306,15 @@ export class ApiClient {
   }
 
   async withdrawFromStream(request: WithdrawalRequest): Promise<WithdrawalResponse> {
-    return this.request<WithdrawalResponse>(`/streams/${request.streamId}/withdraw`, {
+    return this.request<WithdrawalResponse>(`/streams/withdraw`, {
       method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        streamId: request.streamId,
+        amount: request.amount
+      })
     });
   }
 
@@ -334,7 +347,8 @@ export class ApiClient {
     const token = this.token;
     if (!token) return null;
 
-    const wsBaseUrl = this.baseUrl.replace(/^http/, "ws");
+    // For WebSocket, we need to connect to the server root, not /api
+    const wsBaseUrl = this.baseUrl.replace(/^http/, "ws").replace(/\/api$/, "");
     const ws = new WebSocket(`${wsBaseUrl}/ws?token=${encodeURIComponent(token)}`);
 
     return ws;

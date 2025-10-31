@@ -12,6 +12,10 @@ export interface UseSmartContractReturn {
   // Actions
   createStream: (params: StreamCreationParams) => Promise<StreamTransaction>;
   mintTestUSDC: (amount?: string) => Promise<string>;
+  withdrawFromStream: (streamId: number) => Promise<string>;
+  cancelStream: (streamId: number) => Promise<string>;
+  getStreamDetails: (streamId: number) => Promise<Record<string, unknown>>;
+  getUserStreams: (address?: string) => Promise<number[]>;
   refreshBalance: () => Promise<void>;
   clearError: () => void;
 }
@@ -112,6 +116,94 @@ export function useSmartContract(): UseSmartContractReturn {
     setError(null);
   };
 
+  const withdrawFromStream = async (streamId: number): Promise<string> => {
+    if (!contractService.isInitialized()) {
+      throw new Error('Smart contracts not initialized');
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const txHash = await contractService.withdrawFromStream(streamId);
+      
+      // Refresh balance after withdrawal
+      await refreshBalance();
+      
+      return txHash;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to withdraw from stream';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const cancelStream = async (streamId: number): Promise<string> => {
+    if (!contractService.isInitialized()) {
+      throw new Error('Smart contracts not initialized');
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const txHash = await contractService.cancelStream(streamId);
+      
+      // Refresh balance after cancellation
+      await refreshBalance();
+      
+      return txHash;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to cancel stream';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getStreamDetails = async (streamId: number) => {
+    if (!contractService.isInitialized()) {
+      throw new Error('Smart contracts not initialized');
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const details = await contractService.getStreamDetails(streamId);
+      return details;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get stream details';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getUserStreams = async (address?: string): Promise<number[]> => {
+    if (!contractService.isInitialized()) {
+      throw new Error('Smart contracts not initialized');
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const streamIds = await contractService.getUserStreams(address);
+      return streamIds;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get user streams';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     isInitialized,
     usdcBalance,
@@ -119,6 +211,10 @@ export function useSmartContract(): UseSmartContractReturn {
     error,
     createStream,
     mintTestUSDC,
+    withdrawFromStream,
+    cancelStream,
+    getStreamDetails,
+    getUserStreams,
     refreshBalance,
     clearError,
   };
