@@ -7,11 +7,11 @@ import WalletAside from "@/app/_components/ui/walletAside";
 import mainStyles from "@/app/_components/styling/mainContent.receipient.module.css";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
-const receipientLinks = [
+export const receipientLinks = [
     { label: "Dashboard", href: "/recipient/dashboard" },
     { label: "Statistics", href: "/statistics" },
     { label: "Wallet", href: "/wallet" },
-    { label: "Account", href: "/"},
+    { label: "Account", href: "/account"},
     { label: "Settings", href: "/"}
 ];
 

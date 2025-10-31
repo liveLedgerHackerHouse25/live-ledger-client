@@ -9,11 +9,11 @@ import StreamReceipt from "@/app/_components/ui/streamReceipt";
 import type { StreamPayload } from "@/app/_components/ui/payerStreamForm";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
-const payerLinks = [
+export const payerLinks = [
     { label: "Dashboard", href: "/payer/dashboard" },
     { label: "Statistics", href: "/statistics" },
     { label: "Wallet", href: "/wallet" },
-    { label: "Account", href: "/"},
+    { label: "Account", href: "/account"},
     { label: "Settings", href: "/"}
 ];
 

@@ -33,10 +33,10 @@ export default function ProtectedRoute({ children, redirectTo = "/auth/login" }:
     const check = async () => {
       try {
         console.debug("[ProtectedRoute] fetching /auth/me");
-        const me = await api.get("/auth/me");
+        const me: any = await api.get("/auth/me");
         console.debug("[ProtectedRoute] /auth/me result:", me);
 
-        // 🧩 Fix: handle your actual response shape
+          // 🧩 Fix: handle your actual response shape
         const user = me?.data?.user ?? me?.user ?? me;
         if (!mounted) return;
 
@@ -69,13 +69,13 @@ export default function ProtectedRoute({ children, redirectTo = "/auth/login" }:
     };
   }, [router, redirectTo, isConnected]);
 
-  if (checking) {
+  {/*if (checking) {
     return (
       <div style={{ padding: 24, textAlign: "center" }}>
         Checking authentication...
       </div>
     );
-  }
+  }*/}
 
   return <>{children}</>;
 }
