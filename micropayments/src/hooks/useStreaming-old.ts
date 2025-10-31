@@ -277,37 +277,37 @@ export function useStreaming() {
         );
         
         // Convert smart contract data to expected format
-        const convertedStreams: StreamData[] = streamDetails.map((details, index) => ({
+          const convertedStreams: StreamData[] = streamDetails.map((details, index) => ({
           id: `chain_${streamIds[index]}`,
           onChainStreamId: streamIds[index],
           payer: {
-            id: details.payer,
-            walletAddress: details.payer,
+            id: String(details.payer),
+            walletAddress: String(details.payer),
             name: null,
             email: null
           },
           recipient: {
-            id: details.recipient,
-            walletAddress: details.recipient,
+            id: String(details.recipient),
+            walletAddress: String(details.recipient),
             name: null,
             email: null
           },
-          tokenAddress: details.token || '',
-          totalAmount: details.totalAmount,
+          tokenAddress: String(details.token || ''),
+          totalAmount: String(details.totalAmount),
           status: details.active ? 'ACTIVE' : 'COMPLETED',
-          startTime: details.startTime,
-          endTime: details.endTime,
+          startTime: Number(details.startTime),
+          endTime: details.endTime !== undefined && details.endTime !== null ? Number(details.endTime) : null,
           calculation: {
             streamId: `chain_${streamIds[index]}`,
-            currentBalance: details.totalAmount,
-            claimableAmount: details.claimableAmount || '0',
-            totalStreamed: details.totalAmount,
-            withdrawnAmount: details.withdrawn,
+            currentBalance: String(details.totalAmount),
+            claimableAmount: String(details.claimableAmount || '0'),
+            totalStreamed: String(details.totalAmount),
+            withdrawnAmount: String(details.withdrawn ?? '0'),
             progress: 0,
-            isActive: details.active,
-            ratePerSecond: details.ratePerSecond,
-            startTime: details.startTime,
-            endTime: details.endTime,
+            isActive: Boolean(details.active),
+            ratePerSecond: String(details.ratePerSecond),
+            startTime: Number(details.startTime),
+            endTime: details.endTime !== undefined && details.endTime !== null ? Number(details.endTime) : null,
             lastCalculated: Date.now() / 1000
           },
           withdrawalLimits: {
@@ -318,7 +318,7 @@ export function useStreaming() {
             dayIndex: 0,
             nextWithdrawalTime: null
           },
-          createdAt: details.startTime,
+          createdAt: Number(details.startTime),
           updatedAt: Date.now() / 1000
         }));
 
@@ -360,7 +360,7 @@ export function useStreaming() {
 
       // Try backend API first
       try {
-        const response = await api.withdrawFromStream({ streamId });
+  const response = await api.withdrawFromStream({ streamId, amount: String(claimableAmount) });
         console.log('Withdrawal initiated via backend:', response);
         
         // Update stream state optimistically

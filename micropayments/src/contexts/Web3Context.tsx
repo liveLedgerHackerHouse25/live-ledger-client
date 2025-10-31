@@ -173,7 +173,12 @@ export function Web3Provider({ children }: Web3ProviderProps) {
 
     try {
       if (typeof window === 'undefined' || !window.ethereum) {
-        throw new Error('MetaMask is not installed. Please install MetaMask to continue.');
+        // Don't throw here; handle gracefully so callers don't produce noisy stack traces.
+        const msg = 'MetaMask is not installed. Please install MetaMask to continue.';
+        console.warn('[Web3] connectWallet aborted:', msg);
+        setError(msg);
+        setIsConnecting(false);
+        return;
       }
 
       // Request account access

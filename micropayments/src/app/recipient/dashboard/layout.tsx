@@ -2,7 +2,7 @@
 import React from "react";
 import Sidebar from "@/app/_components/ui/sidebar";
 import Topbar from "@/app/_components/ui/topbar";
-import StreamInfo from "@/app/_components/ui/streamInfo";
+// import StreamInfo from "@/app/_components/ui/streamInfo";
 import WalletAside from "@/app/_components/ui/walletAside";
 import mainStyles from "@/app/_components/styling/mainContent.receipient.module.css";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -25,9 +25,9 @@ export default function DashboardLayout({children} : {
                 <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                    <Topbar title="Recipient Dashboard" subtitle="Welcome back" />
                    <div className={mainStyles.content}>
-                      <div className={mainStyles.topRow}>
+                      {/*<div className={mainStyles.topRow}>
                          <StreamInfo />
-                      </div>
+                      </div>*/}
                       <div className={mainStyles.children}>
                          {children}
                       </div>

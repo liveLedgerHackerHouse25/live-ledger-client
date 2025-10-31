@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "@/app/_components/ui/sidebar"
 import Topbar from "@/app/_components/ui/topbar"
 import WalletAside from "@/app/_components/ui/walletAside";
@@ -8,6 +8,7 @@ import PayerStreamForm from "@/app/_components/ui/payerStreamForm";
 import StreamReceipt from "@/app/_components/ui/streamReceipt";
 import type { StreamPayload } from "@/app/_components/ui/payerStreamForm";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { api } from "@/lib/api";
 
 export const payerLinks = [
     { label: "Dashboard", href: "/payer/dashboard" },
@@ -23,13 +24,59 @@ export default function DashboardLayout({children} : {
     // Keep an array of streams so new streams don't replace old ones
     const [streams, setStreams] = useState<StreamPayload[]>([]);
     const [showForm, setShowForm] = useState(false);
+    const [userName, setUserName] = useState<string | null>(null);
+
+    useEffect(() => {
+      let mounted = true;
+      (async () => {
+        try {
+          // Try known profile endpoints (some backends expose /users/profile, others /auth/me)
+          let res: any = null;
+          try {
+            res = await api.get('/users/profile');
+          } catch (e) {
+            // ignore and try fallback
+            console.debug('[payer layout] /users/profile failed, trying /auth/me', e);
+          }
+
+          if (!res) {
+            try {
+              res = await api.get('/auth/me');
+            } catch (e) {
+              console.debug('[payer layout] /auth/me failed', e);
+            }
+          }
+
+          const user = res?.data?.user ?? res?.user ?? res;
+          if (!mounted) return;
+          // Support a few shapes: { name }, { user: { name } }, { data: { user: { name } } }
+          const name = user?.name ?? user?.user?.name ?? user?.data?.user?.name ?? null;
+          // Debugging: log the raw response and the resolved user/name to help trace missing username
+          try {
+            // Keep logs lightweight in production by using console.debug
+            console.debug('[payer layout] profile fetch raw response:', res);
+            console.debug('[payer layout] resolved user object:', user);
+            console.debug('[payer layout] resolved name:', name);
+          } catch (e) {
+            // ignore logging errors
+          }
+
+          setUserName(name ?? null);
+        } catch (err) {
+          // ignore - keep userName null
+          console.debug('[payer layout] could not load profile', err);
+        }
+      })();
+
+      return () => { mounted = false; };
+    }, []);
 
     return (
       <ProtectedRoute>
       <div style={{ display: "flex", minHeight: "100vh" }}>
         <Sidebar links={payerLinks}/>
         <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-          <Topbar title="Payer Dashboard" subtitle="Welcome back" />
+          <Topbar title="Payer Dashboard" subtitle={userName ? `Welcome back, ${userName}` : "Welcome back"} />
           {/* themed content area below the Topbar */}
           <div className={mainStyles.content}>
             {/* center and constrain the top row to reduce overall width */}

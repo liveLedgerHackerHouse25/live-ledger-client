@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "@/contexts/Web3Context";
 import styles from "@/app/_components/styling/mainContent.module.css";
+import { api } from "@/lib/api";
 
 interface PaymentStream {
   id: string;
@@ -17,17 +18,79 @@ interface PaymentStream {
 export default function PayerDashboard(): React.ReactElement {
   const { isConnected, account, balance } = useWallet();
   const [activeStreams, setActiveStreams] = useState<PaymentStream[]>([]);
-  const [totalStreamed, setTotalStreamed] = useState(0);
+  const [totalStreamed, setTotalStreamed] = useState<number>(0);
+  const [totalLocked, setTotalLocked] = useState<string | null>(null);
+  const [stats, setStats] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Mock data for now - will be replaced with real blockchain data
   useEffect(() => {
     const loadUserStreams = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Mock streams data
+        // First, attempt to get the user's profile to determine the address to query
+        let addr: string | undefined = undefined;
+        try {
+          const profileRes: any = await api.get("/users/profile");
+          // Support several response shapes
+          addr = profileRes?.data?.user?.walletAddress ?? profileRes?.user?.walletAddress ?? profileRes?.walletAddress ?? profileRes?.address;
+        } catch (profileErr) {
+          // Non-fatal: fall back to connected wallet address from Web3Context
+          console.debug("Could not load /users/profile, falling back to connected account", profileErr);
+        }
+
+        if (!addr && account) addr = account;
+
+        if (!addr) {
+          throw new Error("No wallet address available to load payer dashboard");
+        }
+
+        // Fetch payer dashboard data
+        const res: any = await api.get(`/dashboard/payer/${addr}`);
+        // api.request already unwraps common envelopes; handle both wrapped and raw shapes
+        const payload = res?.data ?? res;
+
+        const streamsFromApi: any[] = payload?.activeStreams ?? payload?.active_streams ?? [];
+        const totalStreamedStr: string | undefined = payload?.totalStreamed ?? payload?.total_streamed ?? payload?.totalStreamed;
+        const totalLockedStr: string | undefined = payload?.totalLocked ?? payload?.total_locked ?? payload?.totalLocked;
+        const statsObj = payload?.stats ?? payload?.statistics ?? null;
+
+        if (Array.isArray(streamsFromApi) && streamsFromApi.length > 0) {
+          // Map API stream shape to PaymentStream if possible
+          const mapped: PaymentStream[] = streamsFromApi.map((s: any, idx: number) => {
+            // Try to normalize fields with fallbacks
+            const start = s?.startTime ? new Date(s.startTime) : new Date();
+            const end = s?.endTime ? new Date(s.endTime) : new Date(start.getTime() + 7 * 24 * 3600 * 1000);
+            return {
+              id: s?.id ?? `stream_${idx}`,
+              recipient: s?.recipient ?? s?.recipientAddress ?? s?.to ?? "",
+              rate: Number(s?.rate ?? s?.ratePerSecond ?? 0),
+              totalAmount: Number(s?.totalAmount ?? s?.amount ?? 0),
+              startTime: start,
+              endTime: end,
+              withdrawn: Number(s?.withdrawn ?? s?.withdrawnAmount ?? 0),
+              active: Boolean(s?.active ?? (s?.status === "ACTIVE"))
+            };
+          });
+
+          setActiveStreams(mapped);
+          setTotalStreamed(mapped.reduce((sum, st) => sum + st.withdrawn, 0));
+        } else {
+          // No streams from API - set empty
+          setActiveStreams([]);
+          setTotalStreamed(Number(totalStreamedStr ?? 0));
+        }
+
+        setTotalLocked(totalLockedStr ?? null);
+        setStats(statsObj ?? null);
+
+      } catch (err: any) {
+        console.error("Failed to load payer dashboard:", err);
+        setError(err?.message ?? String(err));
+
+        // Fallback to the previous mock behavior so the UI remains useful during development
         const mockStreams: PaymentStream[] = [
           {
             id: "stream_1",
@@ -38,33 +101,17 @@ export default function PayerDashboard(): React.ReactElement {
             endTime: new Date(Date.now() + 86400000 * 6), // 6 days from now
             withdrawn: 25.5,
             active: true
-          },
-          {
-            id: "stream_2", 
-            recipient: "0x8B4c5f84B2C82a9C8E",
-            rate: 0.005,
-            totalAmount: 50,
-            startTime: new Date(Date.now() - 43200000), // 12 hours ago
-            endTime: new Date(Date.now() + 43200000 * 11), // 5.5 days from now
-            withdrawn: 8.2,
-            active: true
           }
         ];
-        
         setActiveStreams(mockStreams);
         setTotalStreamed(mockStreams.reduce((sum, stream) => sum + stream.withdrawn, 0));
-      } catch (error) {
-        console.error("Failed to load streams:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (isConnected && account) {
-      loadUserStreams();
-    } else {
-      setLoading(false);
-    }
+    // Only load when connected or if we can still resolve an address via profile
+    loadUserStreams();
   }, [isConnected, account]);
 
   const formatAddress = (address: string) => {

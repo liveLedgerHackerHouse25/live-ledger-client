@@ -304,13 +304,151 @@ export function useStreaming() {
       console.log('📡 Fetching streams from backend API...');
       const response = await api.getUserStreams();
       console.log('✅ Backend API response:', response);
-      
+
       if (response.streams && response.streams.length > 0) {
         setStreams(response.streams);
         console.log(`📋 Found ${response.streams.length} streams from backend`);
       } else {
-        console.log('📭 No streams found in backend, checking smart contract...');
+        // Try recipient-specific dashboard endpoint which may return aggregate stats and activeStreams
+        console.log('📭 No streams returned from generic endpoint, trying recipient dashboard endpoint and profile lookup...');
         setStreams([]);
+        try {
+          // Attempt to get the user's canonical wallet/address from profile endpoints
+          let profile: any = null;
+          try {
+            profile = await api.get('/users/profile');
+          } catch (pe) {
+            try {
+              profile = await api.get('/auth/me');
+            } catch {
+              profile = null;
+            }
+          }
+
+          const address = profile?.data?.user?.walletAddress ?? profile?.user?.walletAddress ?? profile?.walletAddress ?? account;
+          if (address) {
+            console.log('📡 Fetching recipient dashboard for address:', address);
+            const recipientRes: any = await api.get(`/dashboard/recipient/${address}`);
+            console.log('📡 /dashboard/recipient response:', recipientRes);
+            const d = recipientRes?.data ?? recipientRes;
+            // If we have data with totals or activeStreams, map into StreamData/UserBalance
+            if (d) {
+              const active = Array.isArray(d.activeStreams) ? d.activeStreams : [];
+              const mappedStreams = active.map((s: any, idx: number) => {
+                // Map minimal fields; safest to coerce types to strings/numbers
+                const id = s?.id ?? s?.streamId ?? `remote_${idx}`;
+                const payerAddr = s?.payer?.walletAddress ?? s?.payer ?? s?.from ?? '';
+                const recipientAddr = s?.recipient?.walletAddress ?? s?.recipient ?? address;
+                const totalAmount = String(s?.totalAmount ?? s?.amount ?? d?.totalEarned ?? '0');
+                const startTime = Number(s?.startTime ?? s?.calculation?.startTime ?? Date.now() / 1000);
+                const endTime = s?.endTime ? Number(s.endTime) : null;
+                const calculation = {
+                  streamId: id,
+                  currentBalance: String(s?.calculation?.currentBalance ?? s?.calculation?.totalStreamed ?? '0'),
+                  claimableAmount: String(s?.calculation?.claimableAmount ?? s?.claimableAmount ?? '0'),
+                  totalStreamed: String(s?.calculation?.totalStreamed ?? s?.totalStreamed ?? totalAmount),
+                  withdrawnAmount: String(s?.calculation?.withdrawnAmount ?? s?.withdrawn ?? '0'),
+                  progress: Number(s?.calculation?.progress ?? 0),
+                  isActive: Boolean(s?.calculation?.isActive ?? (s?.status === 'ACTIVE')),
+                  ratePerSecond: String(s?.calculation?.ratePerSecond ?? s?.ratePerSecond ?? '0'),
+                  startTime: Number(startTime),
+                  endTime: endTime,
+                  lastCalculated: Number(Date.now() / 1000)
+                } as any;
+
+                return {
+                  id: String(id),
+                  onChainStreamId: s?.onChainStreamId ?? s?.onChainId ?? undefined,
+                  payer: {
+                    id: String(s?.payer?.id ?? s?.payer ?? ''),
+                    walletAddress: String(payerAddr),
+                    name: s?.payer?.name ?? null,
+                    email: s?.payer?.email ?? null
+                  },
+                  recipient: {
+                    id: String(s?.recipient?.id ?? s?.recipient ?? ''),
+                    walletAddress: String(recipientAddr),
+                    name: s?.recipient?.name ?? null,
+                    email: s?.recipient?.email ?? null
+                  },
+                  tokenAddress: String(s?.tokenAddress ?? s?.token ?? ''),
+                  totalAmount: String(totalAmount),
+                  status: (s?.status ?? 'ACTIVE') as any,
+                  startTime: Number(startTime),
+                  endTime: endTime,
+                  calculation,
+                  withdrawalLimits: {
+                    maxWithdrawalsPerDay: s?.withdrawalLimits?.maxWithdrawalsPerDay ?? 5,
+                    withdrawalsUsedToday: s?.withdrawalLimits?.withdrawalsUsedToday ?? d?.withdrawalLimitUsed ?? 0,
+                    remainingWithdrawals: (s?.withdrawalLimits?.maxWithdrawalsPerDay ?? 5) - (s?.withdrawalLimits?.withdrawalsUsedToday ?? d?.withdrawalLimitUsed ?? 0),
+                    canWithdraw: true,
+                    dayIndex: 0,
+                    nextWithdrawalTime: null
+                  },
+                  createdAt: Number(s?.createdAt ?? startTime),
+                  updatedAt: Number(s?.updatedAt ?? Date.now() / 1000)
+                } as StreamData;
+              });
+
+              // Build a lightweight UserBalance from the recipient endpoint
+              const userBal: UserBalance = {
+                balances: [{
+                  tokenAddress: d?.tokenAddress ?? '0x0',
+                  totalEarned: String(d?.totalEarned ?? '0'),
+                  totalWithdrawn: String(d?.totalWithdrawn ?? '0'),
+                  availableBalance: String(d?.availableToWithdraw ?? d?.availableToWithdraw ?? '0')
+                }],
+                activeStreams: mappedStreams.map((m: StreamData) => m.calculation),
+                totalActiveStreams: mappedStreams.length
+              };
+
+              setStreams(mappedStreams);
+              setUserBalance(userBal);
+
+              // Attempt to enrich balances via /dashboard/streams/{streamIds}/balances if stream ids exist
+              try {
+                const ids = mappedStreams.map((s: StreamData) => s.id).filter(Boolean);
+                if (ids.length > 0) {
+                  const balancesRes: any = await api.get(`/dashboard/streams/${ids.join(',')}/balances`);
+                  const balData = balancesRes?.data ?? balancesRes;
+                  if (balData) {
+                    // If the balances endpoint returns per-stream balances, merge claimable/withdrawn
+                    const per = balData?.streams ?? balData;
+                    if (Array.isArray(per)) {
+                      // map by id
+                      const byId = new Map(per.map((p: any) => [String(p.id ?? p.streamId), p]));
+                      setStreams(prev => prev.map(s => {
+                        const p = byId.get(s.id);
+                        if (!p) return s;
+                        return {
+                          ...s,
+                          calculation: {
+                            ...s.calculation,
+                            claimableAmount: String(p.claimableAmount ?? p.available ?? s.calculation.claimableAmount),
+                            withdrawnAmount: String(p.withdrawnAmount ?? p.withdrawn ?? s.calculation.withdrawnAmount),
+                            currentBalance: String(p.currentBalance ?? s.calculation.currentBalance)
+                          }
+                        };
+                      }));
+                    }
+                  }
+                }
+              } catch (balErr) {
+                console.debug('Could not fetch per-stream balances:', balErr);
+              }
+
+              console.log(`📋 Found ${mappedStreams.length} streams from recipient dashboard`);
+              // skip smart contract fallback since we have data
+              isLoadingStreamsRef.current = false;
+              setIsLoading(false);
+              return;
+            }
+          }
+        } catch (recErr) {
+          console.debug('Recipient dashboard/profile lookup failed:', recErr);
+        }
+
+        console.log('📭 No streams found in backend, checking smart contract...');
         
         // Fallback: try to get streams from smart contract directly
         try {
